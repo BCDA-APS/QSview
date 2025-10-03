@@ -26,7 +26,8 @@ Downloads = "https://github.com/bcda-APS/QSviz"
 ######################
 
 [tool.setuptools]
-package-dir = {"QSviz" = "QSviz"}
+packages = ["QSviz"]
+package-dir = {"QSviz" = "src/QSviz"}
 
 #####################
 # Development Tools #
