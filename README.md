@@ -1,7 +1,7 @@
-# queueUI
+# QSviz
 
 ## Table of Contents
-- [queueUI](#queueUI)
+- [QSviz](#QSviz)
   - [Table of Contents](#table-of-contents)
   - [Usage](#usage)
   - [Installation](#installation)
@@ -13,17 +13,17 @@
 ## Installation
 On a terminal:
 ```bash
-git clone https://github.com/BCDA-APS/queueUI.git
-cd queueUI
-conda env create --force -n queueUI -f ./env.yml
-conda activate queueUI
+git clone https://github.com/BCDA-APS/QSviz.git
+cd QSviz
+conda env create --force -n QSviz -f ./env.yml
+conda activate QSviz
 pip install -e . --no-deps
 ```
 ## Usage
 On a terminal:
 ```bash
-conda activate queueUI
-queueUI &
+conda activate QSviz
+QSviz &
 ```
 
 ### Using Pre-commit
@@ -37,9 +37,9 @@ queueUI &
 
 ## Contributing
 
-Please report **bugs**, **enhancement requests**, or **questions** through the [Issue Tracker](https://github.com/bcda-APS/queueUI).
+Please report **bugs**, **enhancement requests**, or **questions** through the [Issue Tracker](https://github.com/bcda-APS/QSviz).
 
-If you are looking to contribute, please see [`CONTRIBUTING.md`](https://github.com/bcda-APS/queueUI/blob/main/CONTRIBUTING.md).
+If you are looking to contribute, please see [`CONTRIBUTING.md`](https://github.com/bcda-APS/QSviz/blob/main/CONTRIBUTING.md).
 
 
 ## Citing
@@ -49,4 +49,4 @@ If you are looking to contribute, please see [`CONTRIBUTING.md`](https://github.
 
 ## License
 
-queueUI is MIT licensed, as seen in the [LICENSE](./LICENSE) file.
+QSviz is MIT licensed, as seen in the [LICENSE](./LICENSE) file.

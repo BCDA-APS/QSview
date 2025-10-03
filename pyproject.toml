@@ -1,5 +1,5 @@
 [project]
-name = "queueUI"
+name = "QSviz"
 version = "0.1.0"
 description = "Default template for PDM package"
 authors = [
@@ -15,18 +15,18 @@ dependencies = [
 ]
 
 [project.scripts]
-queueUI = "queueUI.app:main"
+QSviz = "QSviz.app:main"
 
 [project.urls]
-Homepage = "https://github.com/bcda-APS/queueUI"
-Downloads = "https://github.com/bcda-APS/queueUI"
+Homepage = "https://github.com/bcda-APS/QSviz"
+Downloads = "https://github.com/bcda-APS/QSviz"
 
 ######################
 # Build Info + Tools #
 ######################
 
 [tool.setuptools]
-package-dir = {"queueUI" = "queueUI"}
+package-dir = {"QSviz" = "QSviz"}
 
 #####################
 # Development Tools #

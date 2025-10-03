@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-mdaviz: Python Qt5 application to control Bluesky Queue Server.
+QSviz: Python Qt5 application to control Bluesky Queue Server.
 
 .. autosummary::
 
