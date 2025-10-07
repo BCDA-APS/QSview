@@ -6,20 +6,18 @@ Defines MainWindow class.
     ~MainWindow
 """
 
+from bluesky_queueserver_api.zmq import REManagerAPI
 from PyQt5 import QtWidgets
 
 from . import APP_TITLE, utils
 from .user_settings import settings
-from bluesky_queueserver_api.zmq import REManagerAPI
-
 from .widgets import (
-    StatusWidget,
+    ConsoleWidget,
+    HistoryWidget,
     PlanEditorWidget,
     QueueEditorWidget,
-    HistoryWidget,
-    ConsoleWidget,
+    StatusWidget,
 )
-
 
 UI_FILE = utils.getUiFileName(__file__)
 

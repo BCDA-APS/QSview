@@ -2,7 +2,7 @@
 Status Widget - displays application status information.
 """
 
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtCore, QtWidgets
 
 from .. import utils
 
@@ -51,5 +51,5 @@ class StatusWidget(QtWidgets.QWidget):
         self.queueLabel.setText(str(items_in_queue))
         self.historyLabel.setText(str(items_in_history))
         self.loopLabel.setText(loop_mode)
-        self.queue_stop_pendingLabel.setText(queue_stop_pending)
+        self.stopLabel.setText(queue_stop_pending)
         return self.rem_state

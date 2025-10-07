@@ -3,11 +3,11 @@
 Widget components for QSviz application.
 """
 
-from .status import StatusWidget
+from .console import ConsoleWidget
+from .history import HistoryWidget
 from .plan_editor import PlanEditorWidget
 from .queue_editor import QueueEditorWidget
-from .history import HistoryWidget
-from .console import ConsoleWidget
+from .status import StatusWidget
 
 __all__ = [
     "StatusWidget",
