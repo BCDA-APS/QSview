@@ -73,6 +73,9 @@
      <layout class="QGridLayout" name="gridLayout_3">
       <item row="1" column="0">
        <widget class="QPushButton" name="runEngineCloseButton">
+        <property name="toolTip">
+         <string>Initiate the operation of closing the existing RE Worker environment. Fails if there is no existing environment or if RE Manager is not in ‘idle’ state.</string>
+        </property>
         <property name="text">
          <string>Close</string>
         </property>
@@ -80,6 +83,9 @@
       </item>
       <item row="2" column="0">
        <widget class="QPushButton" name="runEngineDestroyButton">
+        <property name="toolTip">
+         <string>Initiate the operation of destroying of the existing (unresponsive) RE Worker environment. </string>
+        </property>
         <property name="text">
          <string>Destroy</string>
         </property>
@@ -87,6 +93,9 @@
       </item>
       <item row="0" column="0">
        <widget class="QPushButton" name="runEngineOpenButton">
+        <property name="toolTip">
+         <string>Initiate the creation of a new RE Worker environment. The request will succeed only if RE Manager is in ‘idle’ state and the environment does not exist.</string>
+        </property>
         <property name="text">
          <string>Open</string>
         </property>
