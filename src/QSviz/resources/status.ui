@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1075</width>
+    <width>1108</width>
     <height>137</height>
    </rect>
   </property>
@@ -26,17 +26,27 @@
       <string>Host Server</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_4">
-      <item row="0" column="0">
+      <item row="1" column="0">
        <widget class="QPushButton" name="connectButton">
         <property name="text">
          <string>Connect</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="0">
+      <item row="2" column="0">
        <widget class="QPushButton" name="disconnectButton">
         <property name="text">
          <string>Disconnect</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="connectionStatusLabel">
+        <property name="text">
+         <string>TextLabel</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
         </property>
        </widget>
       </item>
@@ -44,7 +54,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="label_2">
+    <widget class="QLabel" name="hostLedLabel">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -105,7 +115,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="label">
+    <widget class="QLabel" name="RELedLabel">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -139,22 +149,16 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox_3">
+    <widget class="QGroupBox" name="groupBox_5">
      <property name="title">
       <string>Queue Control</string>
      </property>
-     <layout class="QGridLayout" name="gridLayout_2">
-      <item row="0" column="1">
-       <widget class="QPushButton" name="queuePauseButton">
-        <property name="acceptDrops">
-         <bool>true</bool>
-        </property>
-        <property name="toolTip">
-         <string>Pause</string>
-        </property>
+     <layout class="QGridLayout" name="gridLayout_5">
+      <item row="1" column="0">
+       <widget class="QPushButton" name="queueStopButton">
         <property name="icon">
          <iconset>
-          <normaloff>pause.png</normaloff>pause.png</iconset>
+          <normaloff>stop.png</normaloff>stop.png</iconset>
         </property>
        </widget>
       </item>
@@ -169,19 +173,24 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="2">
-       <widget class="QPushButton" name="queueResumeButton">
-        <property name="toolTip">
-         <string>Resume</string>
-        </property>
-        <property name="icon">
-         <iconset>
-          <normaloff>resume.png</normaloff>resume.png</iconset>
+      <item row="2" column="0">
+       <widget class="QCheckBox" name="autoStartCheckBox">
+        <property name="text">
+         <string>Auto Start</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="3">
-       <widget class="QPushButton" name="queueStopButton">
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_3">
+     <property name="title">
+      <string>Plan Control</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="2" column="0">
+       <widget class="QPushButton" name="reStopButton">
         <property name="toolTip">
          <string>Stop</string>
         </property>
@@ -191,8 +200,40 @@
         </property>
        </widget>
       </item>
+      <item row="1" column="1">
+       <widget class="QPushButton" name="reResumeButton">
+        <property name="toolTip">
+         <string>Resume</string>
+        </property>
+        <property name="icon">
+         <iconset>
+          <normaloff>resume.png</normaloff>resume.png</iconset>
+        </property>
+       </widget>
+      </item>
       <item row="1" column="0">
-       <widget class="QPushButton" name="queueAbortButton">
+       <widget class="QPushButton" name="rePauseButton">
+        <property name="acceptDrops">
+         <bool>true</bool>
+        </property>
+        <property name="toolTip">
+         <string>Pause</string>
+        </property>
+        <property name="icon">
+         <iconset>
+          <normaloff>pause.png</normaloff>pause.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QPushButton" name="reHaltButton">
+        <property name="text">
+         <string>Halt</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QPushButton" name="reAbortButton">
         <property name="toolTip">
          <string>Abort</string>
         </property>
