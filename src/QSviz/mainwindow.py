@@ -11,6 +11,15 @@ from PyQt5 import QtWidgets
 from . import APP_TITLE, utils
 from .user_settings import settings
 
+from .widgets import (
+    StatusWidget,
+    PlanEditorWidget,
+    QueueEditorWidget,
+    HistoryWidget,
+    ConsoleWidget,
+)
+
+
 UI_FILE = utils.getUiFileName(__file__)
 
 
@@ -29,35 +38,25 @@ class MainWindow(QtWidgets.QMainWindow):
         self.actionAbout.triggered.connect(self.doAboutDialog)
         self.actionExit.triggered.connect(self.doClose)
 
-        # Status bar
-        status_widget = QtWidgets.QWidget()
-        utils.myLoadUi("statusbar.ui", baseinstance=status_widget)
-        self.groupBox_status.layout().addWidget(status_widget)
+        self.status_widget = StatusWidget(self)
+        self.groupBox_status.layout().addWidget(self.status_widget)
 
-        # Queue editor
-        editor_widget = QtWidgets.QWidget()
-        utils.myLoadUi("planeditor.ui", baseinstance=editor_widget)
-        self.groupBox_editor.layout().addWidget(editor_widget)
+        self.plan_editor_widget = PlanEditorWidget(self)
+        self.groupBox_editor.layout().addWidget(self.plan_editor_widget)
 
-        # Queue editor
-        queue_widget = QtWidgets.QWidget()
-        utils.myLoadUi("queueeditor.ui", baseinstance=queue_widget)
-        self.groupBox_queue.layout().addWidget(queue_widget)
+        self.queue_editor_widget = QueueEditorWidget(self)
+        self.groupBox_queue.layout().addWidget(self.queue_editor_widget)
 
-        # History editor
-        history_widget = QtWidgets.QWidget()
-        utils.myLoadUi("historyeditor.ui", baseinstance=history_widget)
-        self.groupBox_history.layout().addWidget(history_widget)
+        self.history_widget = HistoryWidget(self)
+        self.groupBox_history.layout().addWidget(self.history_widget)
 
-        # Console
-        console_widget = QtWidgets.QWidget()
-        utils.myLoadUi("console.ui", baseinstance=console_widget)
-        self.groupBox_console.layout().addWidget(console_widget)
+        self.console_widget = ConsoleWidget(self)
+        self.groupBox_console.layout().addWidget(self.console_widget)
 
+        # Splitters and stretch factors
         self.splitter_V.setSizes([120, 340, 200])
         self.splitter_H1.setSizes([500, 500])
         self.splitter_H2.setSizes([500, 500])
-        # optional ratios
         self.splitter_V.setStretchFactor(1, 2)
 
         settings.restoreWindowGeometry(self, "mainwindow_geometry")
