@@ -98,7 +98,11 @@
         <string>Clear queue</string>
        </property>
        <property name="text">
-        <string>Clear Queue</string>
+        <string>Clear</string>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>clear.png</normaloff>clear.png</iconset>
        </property>
       </widget>
      </item>

@@ -51,6 +51,10 @@
        <property name="text">
         <string>Deselect All</string>
        </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>deselect.png</normaloff>deselect.png</iconset>
+       </property>
       </widget>
      </item>
      <item>
@@ -73,6 +77,10 @@
        </property>
        <property name="text">
         <string>Clear</string>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>clear.png</normaloff>clear.png</iconset>
        </property>
       </widget>
      </item>
