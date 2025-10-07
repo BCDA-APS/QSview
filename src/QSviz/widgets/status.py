@@ -21,7 +21,13 @@ class StatusWidget(QtWidgets.QWidget):
         self.setup()
 
     def setup(self):
-        """Connect signals and slots."""
+        """Setup connections and initialize status."""
+        # Connection status
+        self.is_connected = False
+        self._update_connection_status()
+
+        # Connect signals and slots
+        # RE environment buttons
         self.runEngineOpenButton.clicked.connect(self.do_run_engine_open)
         self.runEngineCloseButton.clicked.connect(self.do_run_engine_close)
         self.runEngineDestroyButton.clicked.connect(self.do_run_engine_destroy)
@@ -32,10 +38,27 @@ class StatusWidget(QtWidgets.QWidget):
         self.timer.timeout.connect(self.set_rem_state)
         self.timer.start(2000)  # 2 seconds
 
-    def do_run_engine_open(self):
+    def _update_connection_status(self):
+        """Check if connected to server."""
         try:
-            print(f"RE_state: {self.RE_state()}")  # Debug
-            if self.RE_state() == None:
+            if self.rem_api:
+                self.rem_api.status()  # Try to call API
+                self.is_connected = True
+                self.connectionStatusLabel.setText("ONLINE")
+                self.connectionStatusLabel.setStyleSheet("color: green;")
+            else:
+                self.is_connected = False
+                self.connectionStatusLabel.setText("OFFLINE")
+                self.connectionStatusLabel.setStyleSheet("color: red;")
+        except Exception:
+            self.is_connected = False
+            self.connectionStatusLabel.setText("OFFLINE")
+            self.connectionStatusLabel.setStyleSheet("color: red;")
+
+    def do_run_engine_open(self):
+        """Open the Run Engine environment."""
+        try:
+            if self.RE_state() is None:
                 self.mainwindow.setStatus("Opening Run Engine")
                 self.rem_api.environment_open()
                 self.mainwindow.setStatus("Run Engine opened")
@@ -45,8 +68,9 @@ class StatusWidget(QtWidgets.QWidget):
             self.mainwindow.setStatus(f"Error opening environment: {e}")
 
     def do_run_engine_close(self):
+        """Close the Run Engine environment."""
         try:
-            if self.RE_state() != None:
+            if self.RE_state() is not None:
                 self.mainwindow.setStatus("Closing Run Engine")
                 self.rem_api.environment_close()
                 self.mainwindow.setStatus("Run Engine closed")
@@ -56,8 +80,9 @@ class StatusWidget(QtWidgets.QWidget):
             self.mainwindow.setStatus(f"Error closing environment: {e}")
 
     def do_run_engine_destroy(self):
+        """Destroy the Run Engine environment."""
         try:
-            if self.RE_state() != None:
+            if self.RE_state() is not None:
                 self.mainwindow.setStatus("Destroying Run Engine")
                 self.rem_api.environment_destroy()
                 self.mainwindow.setStatus("Run Engine destroyed")
