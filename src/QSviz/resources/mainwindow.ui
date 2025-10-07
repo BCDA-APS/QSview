@@ -144,7 +144,7 @@
             </widget>
             <widget class="QGroupBox" name="groupBox_console">
              <property name="title">
-              <string/>
+              <string>Console</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_6">
               <property name="leftMargin">
@@ -177,7 +177,7 @@
      <x>0</x>
      <y>0</y>
      <width>650</width>
-     <height>38</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
