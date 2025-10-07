@@ -25,7 +25,7 @@ class LicenseDialog(QtWidgets.QDialog):
         super().__init__(parent)
         utils.myLoadUi(self.ui_file, baseinstance=self)
 
-        LICENSE_FILE = pathlib.Path(__file__).parent / "../LICENSE.txt"
+        LICENSE_FILE = pathlib.Path(__file__).parent / "../../LICENSE.txt"
         self.setModal(True)
         license_text = open(LICENSE_FILE, "r").read()
         self.license.setText(license_text)
