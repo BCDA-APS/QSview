@@ -40,25 +40,25 @@ class MainWindow(QtWidgets.QMainWindow):
         self.actionExit.triggered.connect(self.doClose)
 
         # Create QServer connection
-        self.rm_api = REManagerAPI(
+        self.rem_api = REManagerAPI(
             zmq_control_addr="tcp://wow.xray.aps.anl.gov:60615",
             zmq_info_addr="tcp://wow.xray.aps.anl.gov:60625",
         )
 
         # Create widgets with connection
-        self.status_widget = StatusWidget(self, rm_api=self.rm_api)
+        self.status_widget = StatusWidget(self, rem_api=self.rem_api)
         self.groupBox_status.layout().addWidget(self.status_widget)
 
-        self.plan_editor_widget = PlanEditorWidget(self, rm_api=self.rm_api)
+        self.plan_editor_widget = PlanEditorWidget(self, rem_api=self.rem_api)
         self.groupBox_editor.layout().addWidget(self.plan_editor_widget)
 
-        self.queue_editor_widget = QueueEditorWidget(self, rm_api=self.rm_api)
+        self.queue_editor_widget = QueueEditorWidget(self, rem_api=self.rem_api)
         self.groupBox_queue.layout().addWidget(self.queue_editor_widget)
 
-        self.history_widget = HistoryWidget(self, rm_api=self.rm_api)
+        self.history_widget = HistoryWidget(self, rem_api=self.rem_api)
         self.groupBox_history.layout().addWidget(self.history_widget)
 
-        self.console_widget = ConsoleWidget(self, rm_api=self.rm_api)
+        self.console_widget = ConsoleWidget(self, rem_api=self.rem_api)
         self.groupBox_console.layout().addWidget(self.console_widget)
 
         # Splitters and stretch factors

@@ -12,10 +12,11 @@ class PlanEditorWidget(QtWidgets.QWidget):
 
     ui_file = utils.getUiFileName(__file__)
 
-    def __init__(self, parent=None, rm_api=None):
+    def __init__(self, parent=None, rem_api=None):
         super().__init__(parent)
         utils.myLoadUi(self.ui_file, baseinstance=self)
         self.setup()
+        self.rem_api = rem_api
 
     def setup(self):
         """Connect signals and slots."""
