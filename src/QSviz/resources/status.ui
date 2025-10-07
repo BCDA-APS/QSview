@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1071</width>
-    <height>145</height>
+    <width>1075</width>
+    <height>137</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -229,7 +229,7 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QLabel" name="manageLabel">
+       <widget class="QLabel" name="managerLabel">
         <property name="text">
          <string>TextLabel</string>
         </property>
@@ -259,14 +259,14 @@
       <item row="0" column="3">
        <widget class="QLabel" name="label_6">
         <property name="text">
-         <string>Stop pending:</string>
+         <string>STOP pending:</string>
         </property>
        </widget>
       </item>
       <item row="1" column="3">
        <widget class="QLabel" name="label_7">
         <property name="text">
-         <string>Loop enabled:</string>
+         <string>LOOP enabled:</string>
         </property>
        </widget>
       </item>
