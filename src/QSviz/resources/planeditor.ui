@@ -14,6 +14,21 @@
    <string>Form</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>5</number>
+   </property>
+   <property name="topMargin">
+    <number>5</number>
+   </property>
+   <property name="rightMargin">
+    <number>5</number>
+   </property>
+   <property name="bottomMargin">
+    <number>5</number>
+   </property>
    <item>
     <layout class="QGridLayout" name="gridLayout" columnstretch="2,0,0,0,0,0">
      <item row="0" column="0">
@@ -56,7 +71,7 @@
         <string>Add plan to queue</string>
        </property>
        <property name="text">
-        <string>Add to Queue</string>
+        <string/>
        </property>
        <property name="icon">
         <iconset>

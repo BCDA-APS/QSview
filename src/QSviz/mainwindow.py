@@ -35,6 +35,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.groupBox_status.layout().addWidget(status_widget)
 
         # Queue editor
+        editor_widget = QtWidgets.QWidget()
+        utils.myLoadUi("planeditor.ui", baseinstance=editor_widget)
+        self.groupBox_editor.layout().addWidget(editor_widget)
+
+        # Queue editor
         queue_widget = QtWidgets.QWidget()
         utils.myLoadUi("queueeditor.ui", baseinstance=queue_widget)
         self.groupBox_queue.layout().addWidget(queue_widget)
@@ -50,7 +55,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.groupBox_console.layout().addWidget(console_widget)
 
         self.splitter_V.setSizes([120, 340, 200])
-        self.splitter_H.setSizes([500, 500])
+        self.splitter_H1.setSizes([500, 500])
+        self.splitter_H2.setSizes([500, 500])
         # optional ratios
         self.splitter_V.setStretchFactor(1, 2)
 
@@ -94,29 +100,3 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setStatus("Application quitting ...")
         settings.saveWindowGeometry(self, "mainwindow_geometry")
         self.close()
-
-    # def doOpen(self, *args, **kw):
-    #     """
-    #     User chose to open (connect with) a queue server.
-    #     """
-    #     from .opendialog import OpenDialog
-
-    #     self.setStatus("Please select a server...")
-    #     open_dialog = OpenDialog(self)
-
-    # def doPopUp(self, message):
-    #     """
-    #     User chose to open (connect with) a tiled server.
-    #     """
-    #     from .popup import PopUp
-
-    #     popup = PopUp(self, message)
-    #     return popup.exec_() == QtWidgets.QDialog.Accepted
-
-    # def proceed(self):
-    #     """Handle the logic when the user clicks 'OK'."""
-    #     return True
-
-    # def cancel(self):
-    #     """Handle the logic when the user clicks 'Cancel'."""
-    #     return False
