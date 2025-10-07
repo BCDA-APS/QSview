@@ -36,6 +36,7 @@ class StatusWidget(QtWidgets.QWidget):
         self.set_rem_state()
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.set_rem_state)
+        self.timer.timeout.connect(self._update_connection_status)
         self.timer.start(2000)  # 2 seconds
 
     def _update_connection_status(self):
