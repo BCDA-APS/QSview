@@ -29,6 +29,31 @@ class MainWindow(QtWidgets.QMainWindow):
         self.actionAbout.triggered.connect(self.doAboutDialog)
         self.actionExit.triggered.connect(self.doClose)
 
+        # Status bar
+        status_widget = QtWidgets.QWidget()
+        utils.myLoadUi("statusbar.ui", baseinstance=status_widget)
+        self.groupBox_status.layout().addWidget(status_widget)
+
+        # Queue editor
+        queue_widget = QtWidgets.QWidget()
+        utils.myLoadUi("queueeditor.ui", baseinstance=queue_widget)
+        self.groupBox_queue.layout().addWidget(queue_widget)
+
+        # History editor
+        history_widget = QtWidgets.QWidget()
+        utils.myLoadUi("historyeditor.ui", baseinstance=history_widget)
+        self.groupBox_history.layout().addWidget(history_widget)
+
+        # Console
+        console_widget = QtWidgets.QWidget()
+        utils.myLoadUi("console.ui", baseinstance=console_widget)
+        self.groupBox_console.layout().addWidget(console_widget)
+
+        self.splitter_V.setSizes([120, 340, 200])
+        self.splitter_H.setSizes([500, 500])
+        # optional ratios
+        self.splitter_V.setStretchFactor(1, 2)
+
         settings.restoreWindowGeometry(self, "mainwindow_geometry")
         print("Settings are saved in:", settings.fileName())
 
