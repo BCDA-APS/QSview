@@ -10,6 +10,7 @@ from PyQt5 import QtWidgets
 
 from . import APP_TITLE, utils
 from .user_settings import settings
+from bluesky_queueserver_api.zmq import REManagerAPI
 
 from .widgets import (
     StatusWidget,
@@ -38,19 +39,26 @@ class MainWindow(QtWidgets.QMainWindow):
         self.actionAbout.triggered.connect(self.doAboutDialog)
         self.actionExit.triggered.connect(self.doClose)
 
-        self.status_widget = StatusWidget(self)
+        # Create QServer connection
+        self.RM = REManagerAPI(
+            zmq_control_addr="tcp://wow.xray.aps.anl.gov:60615",
+            zmq_info_addr="tcp://wow.xray.aps.anl.gov:60625",
+        )
+
+        # Create widgets with connection
+        self.status_widget = StatusWidget(self, rm_api=self.RM)
         self.groupBox_status.layout().addWidget(self.status_widget)
 
-        self.plan_editor_widget = PlanEditorWidget(self)
+        self.plan_editor_widget = PlanEditorWidget(self, rm_api=self.RM)
         self.groupBox_editor.layout().addWidget(self.plan_editor_widget)
 
-        self.queue_editor_widget = QueueEditorWidget(self)
+        self.queue_editor_widget = QueueEditorWidget(self, rm_api=self.RM)
         self.groupBox_queue.layout().addWidget(self.queue_editor_widget)
 
-        self.history_widget = HistoryWidget(self)
+        self.history_widget = HistoryWidget(self, rm_api=self.RM)
         self.groupBox_history.layout().addWidget(self.history_widget)
 
-        self.console_widget = ConsoleWidget(self)
+        self.console_widget = ConsoleWidget(self, rm_api=self.RM)
         self.groupBox_console.layout().addWidget(self.console_widget)
 
         # Splitters and stretch factors
