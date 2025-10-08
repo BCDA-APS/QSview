@@ -33,20 +33,182 @@ class StatusWidget(QtWidgets.QWidget):
         """Setup connections and initialize status."""
 
         # RE environment buttons
-        self.runEngineOpenButton.clicked.connect(self.do_run_engine_open)
-        self.runEngineCloseButton.clicked.connect(self.do_run_engine_close)
-        self.runEngineDestroyButton.clicked.connect(self.do_run_engine_destroy)
+        self.runEngineOpenButton.clicked.connect(self.do_RE_open)
+        self.runEngineCloseButton.clicked.connect(self.do_RE_close)
+        self.runEngineDestroyButton.clicked.connect(self.do_RE_destroy)
 
         # Queue control buttons
         self.queuePlayButton.clicked.connect(self.do_queue_start)
         self.queueStopButton.clicked.connect(self.do_queue_stop)
         self.autoStartCheckBox.stateChanged.connect(self.do_auto_start)
 
+        # Run Engine control buttons
+        self.rePauseButton_deferred.clicked.connect(self.do_RE_pause_deferred)
+        self.rePauseButton_immediate.clicked.connect(self.do_RE_pause_immediate)
+        self.reResumeButton.clicked.connect(self.do_RE_resume)
+        self.reHaltButton.clicked.connect(self.do_RE_halt)
+        self.reAbortButton.clicked.connect(self.do_RE_abort)
+        self.reStopButton.clicked.connect(self.do_RE_stop)
+
         # Auto-update REM status every 2 seconds
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self._update_RE_status)
         self.timer.timeout.connect(self._update_REM_status)
         self.timer.start(2000)  # 2 seconds
+
+    # Queue control buttons
+
+    def do_queue_start(self):
+        """Start the queue."""
+        try:
+            success, msg = self.rem_api.queue_start()
+            if not success:
+                self.mainwindow.setStatus(f"Error starting queue: {msg}")
+            else:
+                self.mainwindow.setStatus("Queue started successfully")
+        except Exception as e:
+            self.mainwindow.setStatus(f"Error starting queue: {e}")
+
+    def do_queue_stop(self):
+        """Stop the queue."""
+        try:
+            success, msg = self.rem_api.queue_stop()
+            if not success:
+                self.mainwindow.setStatus(f"Error stopping queue: {msg}")
+            else:
+                self.mainwindow.setStatus("Queue stopped successfully")
+        except Exception as e:
+            self.mainwindow.setStatus(f"Error stopping queue: {e}")
+
+    def do_auto_start(self):
+        """Set the auto-start state."""
+        try:
+            success, msg = self.rem_api.queue_autostart(
+                self.autoStartCheckBox.isChecked()
+            )
+            if not success:
+                self.mainwindow.setStatus(f"Error setting auto-start: {msg}")
+            else:
+                self.mainwindow.setStatus("Auto-start set successfully")
+        except Exception as e:
+            self.mainwindow.setStatus(f"Error setting auto-start: {e}")
+
+    # Run Engine control buttons
+
+    def do_RE_open(self):
+        """Open the Run Engine environment."""
+        try:
+            if self.RE_state() is None:
+                self.mainwindow.setStatus("Opening Run Engine...")
+                success, msg = self.rem_api.environment_open()
+                if not success:
+                    self.mainwindow.setStatus(f"Error opening environment: {msg}")
+                else:
+                    self.mainwindow.setStatus("Run Engine opened")
+            else:
+                self.mainwindow.setStatus("Environment already exists")
+        except Exception as e:
+            self.mainwindow.setStatus(f"Error opening environment: {e}")
+
+    def do_RE_close(self):
+        """Close the Run Engine environment."""
+        try:
+            if self.RE_state() is not None:
+                self.mainwindow.setStatus("Closing Run Engine...")
+                success, msg = self.rem_api.environment_close()
+                if not success:
+                    self.mainwindow.setStatus(f"Error closing environment: {msg}")
+                else:
+                    self.mainwindow.setStatus("Run Engine closed")
+            else:
+                self.mainwindow.setStatus("Environment already closed")
+        except Exception as e:
+            self.mainwindow.setStatus(f"Error closing environment: {e}")
+
+    def do_RE_destroy(self):
+        """Destroy the Run Engine environment."""
+        try:
+            if self.RE_state() is not None:
+                self.mainwindow.setStatus("Destroying Run Engine...")
+                success, msg = self.rem_api.environment_destroy()
+                if not success:
+                    self.mainwindow.setStatus(f"Error destroying environment: {msg}")
+                else:
+                    self.mainwindow.setStatus("Run Engine destroyed")
+            else:
+                self.mainwindow.setStatus("Environment already destroyed")
+        except Exception as e:
+            self.mainwindow.setStatus(f"Error destroying environment: {e}")
+
+    def do_RE_pause_deferred(self):
+        """Pause the Run Engine at the next checkpoint (deferred)."""
+        try:
+            success, msg = self.rem_api.re_pause("deferred")
+            if not success:
+                self.mainwindow.setStatus(f"Error pausing Run Engine: {msg}")
+            else:
+                self.mainwindow.setStatus(
+                    "Run Engine will pause at the next checkpoint"
+                )
+        except Exception as e:
+            self.mainwindow.setStatus(f"Error pausing Run Engine: {e}")
+
+    def do_RE_pause_immediate(self):
+        """Pause the Run Engine immediately."""
+        try:
+            success, msg = self.rem_api.re_pause("immediate")
+            if not success:
+                self.mainwindow.setStatus(f"Error pausing Run Engine: {msg}")
+            else:
+                self.mainwindow.setStatus("Run Engine paused immediately")
+        except Exception as e:
+            self.mainwindow.setStatus(f"Error pausing Run Engine: {e}")
+
+    def do_RE_resume(self):
+        """Resume the Run Engine."""
+        try:
+            success, msg = self.rem_api.re_resume()
+            if not success:
+                self.mainwindow.setStatus(f"Error resuming Run Engine: {msg}")
+            else:
+                self.mainwindow.setStatus("Run Engine resumed")
+        except Exception as e:
+            self.mainwindow.setStatus(f"Error resuming Run Engine: {e}")
+
+    def do_RE_halt(self):
+        """Halt the Run Engine."""
+        try:
+            success, msg = self.rem_api.re_halt()
+            if not success:
+                self.mainwindow.setStatus(f"Error halting Run Engine: {msg}")
+            else:
+                self.mainwindow.setStatus("Run Engine halted")
+        except Exception as e:
+            self.mainwindow.setStatus(f"Error halting Run Engine: {e}")
+
+    def do_RE_abort(self):
+        """Abort the Run Engine."""
+        try:
+            success, msg = self.rem_api.re_abort()
+            if not success:
+                self.mainwindow.setStatus(f"Error aborting Run Engine: {msg}")
+            else:
+                self.mainwindow.setStatus("Run Engine aborted")
+        except Exception as e:
+            self.mainwindow.setStatus(f"Error aborting Run Engine: {e}")
+
+    def do_RE_stop(self):
+        """Stop the Run Engine."""
+        try:
+            success, msg = self.rem_api.re_stop()
+            if not success:
+                self.mainwindow.setStatus(f"Error stopping Run Engine: {msg}")
+            else:
+                self.mainwindow.setStatus("Run Engine stopped")
+        except Exception as e:
+            self.mainwindow.setStatus(f"Error stopping Run Engine: {e}")
+
+    # Run Engine Manager and Run Engine state
 
     def REM_state(self):
         """Get the current REM state."""
@@ -86,54 +248,6 @@ class StatusWidget(QtWidgets.QWidget):
                 )
             )
         self.runengineLabel.setText(str(RE_state or "NONE").upper())
-
-    def do_queue_start(self):
-        """Start the queue."""
-        self.rem_api.queue_start()
-
-    def do_queue_stop(self):
-        """Stop the queue."""
-        self.rem_api.queue_stop()
-
-    def do_auto_start(self):
-        """Set the auto-start state."""
-        self.rem_api.queue_autostart(self.autoStartCheckBox.isChecked())
-
-    def do_run_engine_open(self):
-        """Open the Run Engine environment."""
-        try:
-            if self.RE_state() is None:
-                self.mainwindow.setStatus("Opening Run Engine")
-                self.rem_api.environment_open()
-                self.mainwindow.setStatus("Run Engine opened")
-            else:
-                self.mainwindow.setStatus("Environment already exists")
-        except Exception as e:
-            self.mainwindow.setStatus(f"Error opening environment: {e}")
-
-    def do_run_engine_close(self):
-        """Close the Run Engine environment."""
-        try:
-            if self.RE_state() is not None:
-                self.mainwindow.setStatus("Closing Run Engine")
-                self.rem_api.environment_close()
-                self.mainwindow.setStatus("Run Engine closed")
-            else:
-                self.mainwindow.setStatus("Environment already closed")
-        except Exception as e:
-            self.mainwindow.setStatus(f"Error closing environment: {e}")
-
-    def do_run_engine_destroy(self):
-        """Destroy the Run Engine environment."""
-        try:
-            if self.RE_state() is not None:
-                self.mainwindow.setStatus("Destroying Run Engine")
-                self.rem_api.environment_destroy()
-                self.mainwindow.setStatus("Run Engine destroyed")
-            else:
-                self.mainwindow.setStatus("Environment already destroyed")
-        except Exception as e:
-            self.mainwindow.setStatus(f"Error destroying environment: {e}")
 
     def _update_REM_status(self):
         """Update the status of the RE manager."""
