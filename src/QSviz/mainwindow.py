@@ -37,11 +37,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.actionAbout.triggered.connect(self.doAboutDialog)
         self.actionExit.triggered.connect(self.doClose)
 
-        # Create QServer connection
-        self.rem_api = REManagerAPI(
-            zmq_control_addr="tcp://wow.xray.aps.anl.gov:60615",
-            zmq_info_addr="tcp://wow.xray.aps.anl.gov:60625",
-        )
+        # Create RE Manager API
+        self.rem_api = None
 
         # Create widgets with connection
         self.status_widget = StatusWidget(self, rem_api=self.rem_api)
@@ -67,6 +64,30 @@ class MainWindow(QtWidgets.QMainWindow):
 
         settings.restoreWindowGeometry(self, "mainwindow_geometry")
         print("Settings are saved in:", settings.fileName())
+
+    def connect_to_server(self):
+        """Connect to the server."""
+        try:
+            self.rem_api = REManagerAPI(
+                zmq_control_addr="tcp://wow.xray.aps.anl.gov:60615",
+                zmq_info_addr="tcp://wow.xray.aps.anl.gov:60625",
+            )
+            self.status_widget.rem_api = self.rem_api
+            self.status_widget.is_connected = True
+            self.status_widget._update_connection_status()
+            self.setStatus("Connected to server")
+        except Exception as e:
+            self.setStatus(f"Failed to connect: {e}")
+
+    def disconnect_from_server(self):
+        """Disconnect from server."""
+        self.rem_api = None
+        # Update status widget
+        self.status_widget.rem_api = None
+        self.status_widget.is_connected = False
+        self.status_widget._update_connection_status()
+        self.status_widget._update_rem_status()
+        self.setStatus("Disconnected from server")
 
     @property
     def status(self):
