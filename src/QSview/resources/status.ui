@@ -101,6 +101,9 @@
      <layout class="QGridLayout" name="gridLayout_5">
       <item row="1" column="0">
        <widget class="QPushButton" name="queueStopButton">
+        <property name="toolTip">
+         <string>Stop execution of the queue after completion of the currently running plan</string>
+        </property>
         <property name="icon">
          <iconset>
           <normaloff>icons/stop.png</normaloff>icons/stop.png</iconset>
@@ -110,7 +113,7 @@
       <item row="0" column="0">
        <widget class="QPushButton" name="queuePlayButton">
         <property name="toolTip">
-         <string>Play</string>
+         <string>Start execution of the queue</string>
         </property>
         <property name="icon">
          <iconset>
@@ -134,17 +137,6 @@
       <string>Plan Control</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
-      <item row="2" column="0">
-       <widget class="QPushButton" name="reStopButton">
-        <property name="toolTip">
-         <string>Stop</string>
-        </property>
-        <property name="icon">
-         <iconset>
-          <normaloff>icons/stop.png</normaloff>icons/stop.png</iconset>
-        </property>
-       </widget>
-      </item>
       <item row="1" column="1">
        <widget class="QPushButton" name="reResumeButton">
         <property name="toolTip">
@@ -157,12 +149,12 @@
        </widget>
       </item>
       <item row="1" column="0">
-       <widget class="QPushButton" name="rePauseButton">
+       <widget class="QPushButton" name="rePauseButton_deferred">
         <property name="acceptDrops">
          <bool>true</bool>
         </property>
         <property name="toolTip">
-         <string>Pause</string>
+         <string>Pause the plan at the next checkpoint</string>
         </property>
         <property name="icon">
          <iconset>
@@ -184,6 +176,28 @@
         </property>
         <property name="text">
          <string>Abort</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QPushButton" name="reStopButton">
+        <property name="toolTip">
+         <string>Stop</string>
+        </property>
+        <property name="icon">
+         <iconset>
+          <normaloff>icons/stop.png</normaloff>icons/stop.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QPushButton" name="rePauseButton_immediate">
+        <property name="toolTip">
+         <string>Pause the plan immediately</string>
+        </property>
+        <property name="icon">
+         <iconset>
+          <normaloff>icons/pause_2.png</normaloff>icons/pause_2.png</iconset>
         </property>
        </widget>
       </item>

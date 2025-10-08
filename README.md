@@ -1,7 +1,7 @@
-# QSviz
+# QSview
 
 ## Table of Contents
-- [QSviz](#QSviz)
+- [QSview](#QSview)
   - [Table of Contents](#table-of-contents)
   - [Usage](#usage)
   - [Installation](#installation)
@@ -13,17 +13,17 @@
 ## Installation
 On a terminal:
 ```bash
-git clone https://github.com/BCDA-APS/QSviz.git
-cd QSviz
-conda env create --force -n QSviz -f ./env.yml
-conda activate QSviz
+git clone https://github.com/BCDA-APS/QSview.git
+cd QSview
+conda env create -y -n QSview -f ./env.yml
+conda activate QSview
 pip install -e . --no-deps
 ```
 ## Usage
 On a terminal:
 ```bash
-conda activate QSviz
-QSviz &
+conda activate QSview
+QSview &
 ```
 
 ### Using Pre-commit
@@ -37,9 +37,9 @@ QSviz &
 
 ## Contributing
 
-Please report **bugs**, **enhancement requests**, or **questions** through the [Issue Tracker](https://github.com/bcda-APS/QSviz).
+Please report **bugs**, **enhancement requests**, or **questions** through the [Issue Tracker](https://github.com/BCDA-APS/QSview).
 
-If you are looking to contribute, please see [`CONTRIBUTING.md`](https://github.com/bcda-APS/QSviz/blob/main/CONTRIBUTING.md).
+If you are looking to contribute, please see [`CONTRIBUTING.md`](https://github.com/BCDA-APS/QSview/blob/main/CONTRIBUTING.md).
 
 
 ## Citing
@@ -49,4 +49,4 @@ If you are looking to contribute, please see [`CONTRIBUTING.md`](https://github.
 
 ## License
 
-QSviz is MIT licensed, as seen in the [LICENSE](./LICENSE) file.
+QSview is MIT licensed, as seen in the [LICENSE](./LICENSE) file.

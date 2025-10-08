@@ -1,1 +1,1 @@
-"""Pytest tests for QSviz"""
+"""Pytest tests for QSview"""

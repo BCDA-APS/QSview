@@ -1,6 +1,6 @@
-# src/QSviz/widgets/__init__.py
+# src/QSview/widgets/__init__.py
 """
-Widget components for QSviz application.
+Widget components for QSview application.
 """
 
 from .console import ConsoleWidget

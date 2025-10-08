@@ -1,5 +1,5 @@
 [project]
-name = "QSviz"
+name = "QSview"
 version = "0.1.0"
 description = "Default template for PDM package"
 authors = [
@@ -17,19 +17,19 @@ dependencies = [
 ]
 
 [project.scripts]
-QSviz = "QSviz.app:main"
+QSview = "QSview.app:main"
 
 [project.urls]
-Homepage = "https://github.com/bcda-APS/QSviz"
-Downloads = "https://github.com/bcda-APS/QSviz"
+Homepage = "https://github.com/BCDA-APS/QSview"
+Downloads = "https://github.com/BCDA-APS/QSview"
 
 ######################
 # Build Info + Tools #
 ######################
 
 [tool.setuptools]
-packages = ["QSviz"]
-package-dir = {"QSviz" = "src/QSviz"}
+packages = ["QSview"]
+package-dir = {"QSview" = "src/QSview"}
 
 #####################
 # Development Tools #
