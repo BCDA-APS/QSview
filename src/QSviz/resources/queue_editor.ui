@@ -41,7 +41,7 @@
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>plus.png</normaloff>plus.png</iconset>
+         <normaloff>icons/plus.png</normaloff>icons/plus.png</iconset>
        </property>
       </widget>
      </item>
@@ -65,7 +65,7 @@
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>edit.png</normaloff>edit.png</iconset>
+         <normaloff>icons/edit.png</normaloff>icons/edit.png</iconset>
        </property>
       </widget>
      </item>
@@ -79,7 +79,7 @@
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>duplicate.png</normaloff>duplicate.png</iconset>
+         <normaloff>icons/duplicate.png</normaloff>icons/duplicate.png</iconset>
        </property>
       </widget>
      </item>
@@ -90,7 +90,7 @@
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>delete.png</normaloff>delete.png</iconset>
+         <normaloff>icons/delete.png</normaloff>icons/delete.png</iconset>
        </property>
       </widget>
      </item>
@@ -137,7 +137,7 @@
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>clear.png</normaloff>clear.png</iconset>
+         <normaloff>icons/clear.png</normaloff>icons/clear.png</iconset>
        </property>
       </widget>
      </item>
@@ -198,7 +198,7 @@
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>top.png</normaloff>top.png</iconset>
+          <normaloff>icons/top.png</normaloff>icons/top.png</iconset>
         </property>
        </widget>
       </item>
@@ -209,7 +209,7 @@
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>up.png</normaloff>up.png</iconset>
+          <normaloff>icons/up.png</normaloff>icons/up.png</iconset>
         </property>
        </widget>
       </item>
@@ -220,7 +220,7 @@
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>down.png</normaloff>down.png</iconset>
+          <normaloff>icons/down.png</normaloff>icons/down.png</iconset>
         </property>
        </widget>
       </item>
@@ -231,7 +231,7 @@
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>bottom.png</normaloff>bottom.png</iconset>
+          <normaloff>icons/bottom.png</normaloff>icons/bottom.png</iconset>
         </property>
        </widget>
       </item>

@@ -21,61 +21,6 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="QGroupBox" name="groupBox">
-     <property name="title">
-      <string>Host Server</string>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_4">
-      <item row="1" column="0">
-       <widget class="QPushButton" name="connectButton">
-        <property name="text">
-         <string>Connect</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QPushButton" name="disconnectButton">
-        <property name="text">
-         <string>Disconnect</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="connectionStatusLabel">
-        <property name="text">
-         <string>TextLabel</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QLabel" name="connectionLEDLabel">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>20</width>
-       <height>20</height>
-      </size>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">background-color: transparent; border-radius: 8px;</string>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-    </widget>
-   </item>
-   <item>
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
       <string>Run Engine</string>
@@ -158,7 +103,7 @@
        <widget class="QPushButton" name="queueStopButton">
         <property name="icon">
          <iconset>
-          <normaloff>stop.png</normaloff>stop.png</iconset>
+          <normaloff>icons/stop.png</normaloff>icons/stop.png</iconset>
         </property>
        </widget>
       </item>
@@ -169,7 +114,7 @@
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>play.png</normaloff>play.png</iconset>
+          <normaloff>icons/play.png</normaloff>icons/play.png</iconset>
         </property>
        </widget>
       </item>
@@ -196,7 +141,7 @@
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>stop.png</normaloff>stop.png</iconset>
+          <normaloff>icons/stop.png</normaloff>icons/stop.png</iconset>
         </property>
        </widget>
       </item>
@@ -207,7 +152,7 @@
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>resume.png</normaloff>resume.png</iconset>
+          <normaloff>icons/resume.png</normaloff>icons/resume.png</iconset>
         </property>
        </widget>
       </item>
@@ -221,7 +166,7 @@
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>pause.png</normaloff>pause.png</iconset>
+          <normaloff>icons/pause.png</normaloff>icons/pause.png</iconset>
         </property>
        </widget>
       </item>

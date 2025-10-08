@@ -61,7 +61,7 @@
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>save.png</normaloff>save.png</iconset>
+         <normaloff>icons/save.png</normaloff>icons/save.png</iconset>
        </property>
       </widget>
      </item>
@@ -75,7 +75,7 @@
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>plus.png</normaloff>plus.png</iconset>
+         <normaloff>icons/plus.png</normaloff>icons/plus.png</iconset>
        </property>
       </widget>
      </item>
@@ -86,7 +86,7 @@
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>edit.png</normaloff>edit.png</iconset>
+         <normaloff>icons/edit.png</normaloff>icons/edit.png</iconset>
        </property>
       </widget>
      </item>
