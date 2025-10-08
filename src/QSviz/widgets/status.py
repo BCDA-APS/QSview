@@ -4,7 +4,10 @@ Status Widget - displays application status information.
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from .. import utils
+from .. import (
+    resources_rc,  # noqa: F401 - needed to register Qt resources
+    utils,
+)
 
 # Define the icon constants; see https://stackoverflow.com/questions/38195763/implementing-led-in-pyqt-designer
 ICON_RED_LED = ":/icons/led-red-on.png"
