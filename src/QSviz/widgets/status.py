@@ -2,9 +2,13 @@
 Status Widget - displays application status information.
 """
 
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from .. import utils
+
+# Define the icon constants; see https://stackoverflow.com/questions/38195763/implementing-led-in-pyqt-designer
+ICON_RED_LED = ":/icons/led-red-on.png"
+ICON_GREEN_LED = ":/icons/green-led-on.png"
 
 
 class StatusWidget(QtWidgets.QWidget):
@@ -18,17 +22,12 @@ class StatusWidget(QtWidgets.QWidget):
         self.rem_api = rem_api
         print(f"Parent: {parent}")  # Debug
         self.mainwindow = parent
-        self.is_connected = False
-        self._update_connection_status()
-        self._update_rem_status()
+        self._update_REM_status()
+        self._update_RE_status()
         self.setup()
 
     def setup(self):
         """Setup connections and initialize status."""
-
-        # Connect/Disconnect buttons
-        self.connectButton.clicked.connect(self.mainwindow.connect_to_server)
-        self.disconnectButton.clicked.connect(self.mainwindow.disconnect_from_server)
 
         # RE environment buttons
         self.runEngineOpenButton.clicked.connect(self.do_run_engine_open)
@@ -42,7 +41,8 @@ class StatusWidget(QtWidgets.QWidget):
 
         # Auto-update REM status every 2 seconds
         self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self._update_rem_status)
+        self.timer.timeout.connect(self._update_RE_status)
+        self.timer.timeout.connect(self._update_REM_status)
         self.timer.start(2000)  # 2 seconds
 
     def REM_state(self):
@@ -59,14 +59,30 @@ class StatusWidget(QtWidgets.QWidget):
         except Exception:
             return None
 
-    def _update_connection_status(self):
+    def _update_RE_status(self):
         """Update UI based on connection state."""
-        if self.is_connected and self.rem_api:
-            self.connectionStatusLabel.setText("ONLINE")
-            self.connectionStatusLabel.setStyleSheet("color: green;")
+        if not self.rem_api:
+            # Clear all labels when disconnected
+            self.RELEDLabel.setText("")
+            self.REStatusLabel.setText("")
+            return
+
+        RE_state = self.RE_state()
+        if RE_state is not None:
+            pixmap = QtGui.QPixmap(ICON_GREEN_LED)
+            self.RELEDLabel.setPixmap(
+                pixmap.scaled(
+                    20, 20, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation
+                )
+            )
         else:
-            self.connectionStatusLabel.setText("OFFLINE")
-            self.connectionStatusLabel.setStyleSheet("color: red;")
+            pixmap = QtGui.QPixmap(ICON_RED_LED)
+            self.RELEDLabel.setPixmap(
+                pixmap.scaled(
+                    20, 20, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation
+                )
+            )
+        self.runengineLabel.setText(str(RE_state or "NONE").upper())
 
     def do_queue_start(self):
         """Start the queue."""
@@ -116,7 +132,7 @@ class StatusWidget(QtWidgets.QWidget):
         except Exception as e:
             self.mainwindow.setStatus(f"Error destroying environment: {e}")
 
-    def _update_rem_status(self):
+    def _update_REM_status(self):
         """Update the status of the RE manager."""
         labels = [
             self.runengineLabel,
@@ -133,11 +149,9 @@ class StatusWidget(QtWidgets.QWidget):
                 label.setText("")
             return
 
-        RE_state = self.RE_state()
         REM_state = self.REM_state() or {}
 
         # Format and set labels
-        self.runengineLabel.setText(str(RE_state or "NONE").upper())
         self.managerLabel.setText(str(REM_state.get("manager_state", "NONE")).upper())
         self.queueLabel.setText(str(REM_state.get("items_in_queue", 0)))
         self.historyLabel.setText(str(REM_state.get("items_in_history", 0)))

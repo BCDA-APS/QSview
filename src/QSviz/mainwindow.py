@@ -38,7 +38,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.actionExit.triggered.connect(self.doClose)
 
         # Create RE Manager API
-        self.rem_api = None
+        self.rem_api = REManagerAPI(
+            zmq_control_addr="tcp://wow.xray.aps.anl.gov:60615",
+            zmq_info_addr="tcp://wow.xray.aps.anl.gov:60625",
+        )
 
         # Create widgets with connection
         self.status_widget = StatusWidget(self, rem_api=self.rem_api)
@@ -57,37 +60,17 @@ class MainWindow(QtWidgets.QMainWindow):
         self.groupBox_console.layout().addWidget(self.console_widget)
 
         # Splitters and stretch factors
-        self.splitter_V.setSizes([120, 340, 200])
+        self.splitter_V.setSizes([90, 340, 200, 200])
         self.splitter_H1.setSizes([500, 500])
         self.splitter_H2.setSizes([500, 500])
-        self.splitter_V.setStretchFactor(1, 2)
+        # Set stretch factors for each section (index, factor)
+        self.splitter_V.setStretchFactor(0, 0)  # Status - fixed size (no stretch)
+        self.splitter_V.setStretchFactor(1, 2)  # Middle section - gets 2x stretch
+        self.splitter_V.setStretchFactor(2, 1)  # Gets 1x stretch
+        self.splitter_V.setStretchFactor(3, 1)  # Gets 1x stretch
 
         settings.restoreWindowGeometry(self, "mainwindow_geometry")
         print("Settings are saved in:", settings.fileName())
-
-    def connect_to_server(self):
-        """Connect to the server."""
-        try:
-            self.rem_api = REManagerAPI(
-                zmq_control_addr="tcp://wow.xray.aps.anl.gov:60615",
-                zmq_info_addr="tcp://wow.xray.aps.anl.gov:60625",
-            )
-            self.status_widget.rem_api = self.rem_api
-            self.status_widget.is_connected = True
-            self.status_widget._update_connection_status()
-            self.setStatus("Connected to server")
-        except Exception as e:
-            self.setStatus(f"Failed to connect: {e}")
-
-    def disconnect_from_server(self):
-        """Disconnect from server."""
-        self.rem_api = None
-        # Update status widget
-        self.status_widget.rem_api = None
-        self.status_widget.is_connected = False
-        self.status_widget._update_connection_status()
-        self.status_widget._update_rem_status()
-        self.setStatus("Disconnected from server")
 
     @property
     def status(self):
