@@ -25,8 +25,7 @@ class StatusWidget(QtWidgets.QWidget):
         self.rem_api = rem_api
         print(f"Parent: {parent}")  # Debug
         self.mainwindow = parent
-        self._update_REM_status()
-        self._update_RE_status()
+        self.refreshConnection()
         self.setup()
 
     def setup(self):
@@ -52,8 +51,7 @@ class StatusWidget(QtWidgets.QWidget):
 
         # Auto-update REM status every 2 seconds
         self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self._update_RE_status)
-        self.timer.timeout.connect(self._update_REM_status)
+        self.timer.timeout.connect(self.refreshConnection)
         self.timer.start(2000)  # 2 seconds
 
     # Queue control buttons
@@ -277,3 +275,8 @@ class StatusWidget(QtWidgets.QWidget):
         plan_mode = REM_state.get("plan_queue_mode", {})
         self.loopLabel.setText("ON" if plan_mode.get("loop") else "OFF")
         self.stopLabel.setText("YES" if REM_state.get("queue_stop_pending") else "NO")
+
+    def refreshConnection(self):
+        """Refresh widget"""
+        self._update_RE_status()
+        self._update_REM_status()

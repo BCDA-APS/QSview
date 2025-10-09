@@ -10,6 +10,8 @@ from bluesky_queueserver_api.zmq import REManagerAPI
 from PyQt5 import QtWidgets
 
 from . import APP_TITLE, utils
+from .connection_dialog import ConnectionDialog
+from .recentservers_dialogue import RecentServersDialogue
 from .user_settings import settings
 from .widgets import (
     ConsoleWidget,
@@ -33,15 +35,15 @@ class MainWindow(QtWidgets.QMainWindow):
         utils.myLoadUi(UI_FILE, baseinstance=self)
         self.setWindowTitle(APP_TITLE)
 
-        # self.actionOpen.triggered.connect(self.doOpen)
+        # Mainwindow File Menu
+        self.actionOpen.triggered.connect(self.doOpen)
+        self.actionOpenRecent.triggered.connect(self.doOpenRecent)
         self.actionAbout.triggered.connect(self.doAboutDialog)
         self.actionExit.triggered.connect(self.doClose)
 
-        # Create RE Manager API
-        self.rem_api = REManagerAPI(
-            zmq_control_addr="tcp://wow.xray.aps.anl.gov:60615",
-            zmq_info_addr="tcp://wow.xray.aps.anl.gov:60625",
-        )
+        # Initialize RE Manager API & connection to Queue Server
+        self.rem_api = None
+        self.initializeConnection()
 
         # Create widgets with connection
         self.status_widget = StatusWidget(self, rem_api=self.rem_api)
@@ -95,12 +97,25 @@ class MainWindow(QtWidgets.QMainWindow):
         about = AboutDialog(self)
         about.open()
 
-    def closeEvent(self, event):
-        """
-        User clicked the big [X] to quit.
-        """
-        self.doClose()
-        event.accept()  # let the window close
+    def doOpen(self):
+        """Open connection dialogue"""
+        dialog = ConnectionDialog(self)
+        if dialog.exec_() == QtWidgets.QDialog.Accepted:  # User click OK
+            control_addr, info_addr = dialog.getServerAddresses()
+            if control_addr and info_addr:
+                self.connectToServer(control_addr, info_addr)
+
+    def doOpenRecent(self):
+        """Open recent servers dialog"""
+        recent_servers = settings.getRecentServers()
+        if not recent_servers:
+            self.setStatus("No recent servers found")
+            return
+        dialog = RecentServersDialogue(self, recent_servers)
+        if dialog.exec_() == QtWidgets.QDialog.Accepted:  # User click OK
+            control_addr, info_addr = dialog.getServerAddresses()
+            if control_addr and info_addr:
+                self.connectToServer(control_addr, info_addr)
 
     def doClose(self, *args, **kw):
         """
@@ -109,3 +124,54 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setStatus("Application quitting ...")
         settings.saveWindowGeometry(self, "mainwindow_geometry")
         self.close()
+
+    def closeEvent(self, event):
+        """
+        User clicked the big [X] to quit.
+        """
+        self.doClose()
+        event.accept()  # let the window close
+
+    def initializeConnection(self):
+        """Initialize connection using the most recent server or show open dialog"""
+        control_addr, info_addr = settings.getLastServerAddress()
+        if control_addr and info_addr:
+            self.connectToServer(control_addr, info_addr)
+        else:
+            self.doOpen()
+
+    def connectToServer(self, control_addr, info_addr):
+        """Connect to specified server addresses"""
+        try:
+            # Create new RE Manager API
+            self.rem_api = REManagerAPI(
+                zmq_control_addr=control_addr,
+                zmq_info_addr=info_addr,
+            )
+
+            # Update widgets with new connection
+            self.updateWidgetConnections()
+
+            # Save to recent servers
+            settings.addRecentServer(control_addr, info_addr)
+            settings.setLastServerAddress(control_addr, info_addr)
+
+            # Update status
+            self.setStatus(f"Connected to {control_addr} - {info_addr}")
+
+        except Exception as e:
+            self.setStatus(f"Connection failed: {e}")
+
+    def updateWidgetConnections(self):
+        """Update all widgets with new connection"""
+        widgets = [
+            self.status_widget,
+            self.console_widget,
+            self.history_widget,
+            self.plan_editor_widget,
+            self.queue_editor_widget,
+        ]
+        for widget in widgets:
+            widget.rem_api = self.rem_api
+            if hasattr(widget, "refreshConnection"):
+                widget.refreshConnection()
