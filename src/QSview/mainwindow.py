@@ -43,6 +43,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Mainwindow File Menu
         self.actionOpen.triggered.connect(self.doOpen)
         self.actionOpenRecent.triggered.connect(self.doOpenRecent)
+        self.actionClear.triggered.connect(self.doClear)
         self.actionAbout.triggered.connect(self.doAboutDialog)
         self.actionExit.triggered.connect(self.doClose)
 
@@ -125,6 +126,18 @@ class MainWindow(QtWidgets.QMainWindow):
             control_addr, info_addr = dialog.getServerAddresses()
             if control_addr and info_addr:
                 self.connectToServer(control_addr, info_addr)
+
+    def doClear(self):
+        reply = QtWidgets.QMessageBox.question(
+            self,
+            "Clear Recent Servers",
+            "Are you sure you want to clear all recent servers?",
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+            QtWidgets.QMessageBox.No,
+        )
+        if reply == QtWidgets.QMessageBox.Yes:
+            settings.clearRecentServers()
+            self.setStatus("Recent servers cleared")
 
     def doClose(self, *args, **kw):
         """

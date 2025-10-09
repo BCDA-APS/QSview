@@ -277,6 +277,17 @@ class ApplicationQSettings(QtCore.QSettings):
 
         self.setKey("servers/recent_servers", "|".join(recent))
 
+    def clearRecentServers(self):
+        """Clear recent servers but keep the currently connected one."""
+        current_control, current_info = self.getLastServerAddress()
+
+        if current_control and current_info:
+            # Keep only the current server in recent list
+            self.setKey("servers/recent_servers", f"{current_control};{current_info}")
+        else:
+            # No current server to keep, clear everything
+            self.setKey("servers/recent_servers", "")
+
 
 # create _the_ singleton object
 settings = ApplicationQSettings(__settings_orgName__, __package_name__)

@@ -199,6 +199,7 @@
     </property>
     <addaction name="actionOpen"/>
     <addaction name="actionOpenRecent"/>
+    <addaction name="actionClear"/>
     <addaction name="separator"/>
     <addaction name="actionPreferences"/>
     <addaction name="separator"/>
@@ -240,7 +241,7 @@
   </action>
   <action name="actionOpen">
    <property name="text">
-    <string>&amp;Open ...</string>
+    <string>&amp;Open...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -258,7 +259,12 @@
   </action>
   <action name="actionOpenRecent">
    <property name="text">
-    <string>Open Recent</string>
+    <string>Open Recent...</string>
+   </property>
+  </action>
+  <action name="actionClear">
+   <property name="text">
+    <string>Clear Recent Servers</string>
    </property>
   </action>
  </widget>
