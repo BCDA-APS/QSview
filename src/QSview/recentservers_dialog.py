@@ -13,7 +13,7 @@ from . import utils
 UI_FILE = utils.getUiFileName(__file__)
 
 
-class RecentServersDialogue(QtWidgets.QDialog):
+class RecentServersDialog(QtWidgets.QDialog):
     """
     Dialog for selecting recent servers.
     """

@@ -22,10 +22,12 @@ class StatusWidget(QtWidgets.QWidget):
     def __init__(self, parent=None, rem_api=None):
         super().__init__(parent)
         utils.myLoadUi(self.ui_file, baseinstance=self)
-        self.rem_api = rem_api
-        print(f"Parent: {parent}")  # Debug
+
         self.mainwindow = parent
-        self.refreshConnection()
+        self.rem_api = rem_api
+
+        self._update_RE_status()
+        self._update_REM_status()
         self.setup()
 
     def setup(self):
@@ -49,10 +51,11 @@ class StatusWidget(QtWidgets.QWidget):
         self.reAbortButton.clicked.connect(self.do_RE_abort)
         self.reStopButton.clicked.connect(self.do_RE_stop)
 
-        # Auto-update REM status every 2 seconds
-        self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self.refreshConnection)
-        self.timer.start(2000)  # 2 seconds
+        # # Auto-update REM status every 2 seconds
+        # self.timer = QtCore.QTimer()
+        # self.timer.timeout.connect(self._update_RE_status)
+        # self.timer.timeout.connect(self._update_REM_status)
+        # self.timer.start(2000)  # 2 seconds
 
     # Queue control buttons
 
@@ -227,7 +230,7 @@ class StatusWidget(QtWidgets.QWidget):
         if not self.rem_api:
             # Clear all labels when disconnected
             self.RELEDLabel.setText("")
-            self.REStatusLabel.setText("")
+            # self.REStatusLabel.setText("")
             return
 
         RE_state = self.RE_state()
@@ -276,7 +279,9 @@ class StatusWidget(QtWidgets.QWidget):
         self.loopLabel.setText("ON" if plan_mode.get("loop") else "OFF")
         self.stopLabel.setText("YES" if REM_state.get("queue_stop_pending") else "NO")
 
-    def refreshConnection(self):
-        """Refresh widget"""
+    def onConnectionChanged(self, rem_api):
+        """Handle connection changes from MainWindow signal."""
+        self.rem_api = rem_api
         self._update_RE_status()
         self._update_REM_status()
+        # TODO: Add other connection-dependent updates here

@@ -22,3 +22,8 @@ class ConsoleWidget(QtWidgets.QWidget):
         """Connect signals and slots."""
         # TODO: Add signal/slot connections here
         pass
+
+    def onConnectionChanged(self, rem_api):
+        """Handle connection changes from MainWindow signal."""
+        self.rem_api = rem_api
+        # TODO: Add connection-dependent updates here

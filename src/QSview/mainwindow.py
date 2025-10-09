@@ -7,11 +7,11 @@ Defines MainWindow class.
 """
 
 from bluesky_queueserver_api.zmq import REManagerAPI
-from PyQt5 import QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 from . import APP_TITLE, utils
 from .connection_dialog import ConnectionDialog
-from .recentservers_dialogue import RecentServersDialogue
+from .recentservers_dialog import RecentServersDialog
 from .user_settings import settings
 from .widgets import (
     ConsoleWidget,
@@ -30,10 +30,15 @@ class MainWindow(QtWidgets.QMainWindow):
 
     """
 
+    connectionChanged = QtCore.pyqtSignal(object)  # Emits the rem_api object
+
     def __init__(self):
         super().__init__()
         utils.myLoadUi(UI_FILE, baseinstance=self)
         self.setWindowTitle(APP_TITLE)
+
+        # Initialize RE Manager API
+        self.rem_api = None
 
         # Mainwindow File Menu
         self.actionOpen.triggered.connect(self.doOpen)
@@ -41,25 +46,29 @@ class MainWindow(QtWidgets.QMainWindow):
         self.actionAbout.triggered.connect(self.doAboutDialog)
         self.actionExit.triggered.connect(self.doClose)
 
-        # Initialize RE Manager API & connection to Queue Server
-        self.rem_api = None
-        self.initializeConnection()
-
         # Create widgets with connection
         self.status_widget = StatusWidget(self, rem_api=self.rem_api)
         self.groupBox_status.layout().addWidget(self.status_widget)
+        self.connectionChanged.connect(self.status_widget.onConnectionChanged)
 
         self.plan_editor_widget = PlanEditorWidget(self, rem_api=self.rem_api)
         self.groupBox_editor.layout().addWidget(self.plan_editor_widget)
+        self.connectionChanged.connect(self.plan_editor_widget.onConnectionChanged)
 
         self.queue_editor_widget = QueueEditorWidget(self, rem_api=self.rem_api)
         self.groupBox_queue.layout().addWidget(self.queue_editor_widget)
+        self.connectionChanged.connect(self.queue_editor_widget.onConnectionChanged)
 
         self.history_widget = HistoryWidget(self, rem_api=self.rem_api)
         self.groupBox_history.layout().addWidget(self.history_widget)
+        self.connectionChanged.connect(self.history_widget.onConnectionChanged)
 
         self.console_widget = ConsoleWidget(self, rem_api=self.rem_api)
         self.groupBox_console.layout().addWidget(self.console_widget)
+        self.connectionChanged.connect(self.console_widget.onConnectionChanged)
+
+        # Initialize connection to Queue Server
+        self.initializeConnection()
 
         # Splitters and stretch factors
         self.splitter_V.setSizes([90, 340, 200, 200])
@@ -111,7 +120,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if not recent_servers:
             self.setStatus("No recent servers found")
             return
-        dialog = RecentServersDialogue(self, recent_servers)
+        dialog = RecentServersDialog(self, recent_servers)
         if dialog.exec_() == QtWidgets.QDialog.Accepted:  # User click OK
             control_addr, info_addr = dialog.getServerAddresses()
             if control_addr and info_addr:
@@ -149,8 +158,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 zmq_info_addr=info_addr,
             )
 
-            # Update widgets with new connection
-            self.updateWidgetConnections()
+            # Emit signal to widgets
+            self.connectionChanged.emit(self.rem_api)
 
             # Save to recent servers
             settings.addRecentServer(control_addr, info_addr)
@@ -161,17 +170,3 @@ class MainWindow(QtWidgets.QMainWindow):
 
         except Exception as e:
             self.setStatus(f"Connection failed: {e}")
-
-    def updateWidgetConnections(self):
-        """Update all widgets with new connection"""
-        widgets = [
-            self.status_widget,
-            self.console_widget,
-            self.history_widget,
-            self.plan_editor_widget,
-            self.queue_editor_widget,
-        ]
-        for widget in widgets:
-            widget.rem_api = self.rem_api
-            if hasattr(widget, "refreshConnection"):
-                widget.refreshConnection()
