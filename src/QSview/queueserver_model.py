@@ -47,6 +47,11 @@ class QueueServerModel(QtCore.QObject):
         self._control_addr = ""
         self._info_addr = ""
 
+        # Reconnection state
+        self._last_successful_control_addr = ""
+        self._last_successful_info_addr = ""
+        self._is_reconnecting = False
+
         # Cached state
         self._status = {}
         self._queue = {}
@@ -84,6 +89,10 @@ class QueueServerModel(QtCore.QObject):
             self._info_addr = info_addr
             self._status = status
 
+            # Save for reconnection
+            self._last_successful_control_addr = control_addr
+            self._last_successful_info_addr = info_addr
+
             # Start periodic updates
             self._timer.start(self._update_interval)
 
@@ -120,6 +129,7 @@ class QueueServerModel(QtCore.QObject):
         # Clear connection
         self._rem_api = None
         self._is_connected = False
+        self._is_reconnecting = False
 
         # Clear cached state
         self._status = {}
@@ -128,6 +138,30 @@ class QueueServerModel(QtCore.QObject):
 
         # Emit disconnection
         self.connectionChanged.emit(False, self._control_addr, self._info_addr)
+
+    def attemptReconnect(self):
+        """Attempt to reconnect to the last successful server."""
+        if self._is_reconnecting:
+            return  # Already trying to reconnect
+
+        if (
+            not self._last_successful_control_addr
+            or not self._last_successful_info_addr
+        ):
+            print("No previous connection to reconnect to")
+            return
+
+        self._is_reconnecting = True
+        print(f"Attempting to reconnect to {self._last_successful_control_addr}")
+
+        # Emit reconnecting signal
+        self.connectionChanged.emit(False, "reconnecting", "")
+        success, msg = self.connectToServer(
+            self._last_successful_control_addr, self._last_successful_info_addr
+        )
+        self._is_reconnecting = False
+        if not success:
+            print(f"Reconnection failed: {msg}")
 
     def _update_status(self):
         """

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1108</width>
-    <height>137</height>
+    <height>151</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,18 +21,86 @@
     <number>0</number>
    </property>
    <item>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>Queue Server</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QWidget" name="widget" native="true">
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <item>
+          <widget class="QWidget" name="widget_2" native="true">
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <item>
+             <widget class="QWidget" name="widget_3" native="true"/>
+            </item>
+            <item>
+             <widget class="QLabel" name="QSLEDLabel">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">background-color: transparent; border-radius: 8px;</string>
+              </property>
+              <property name="frameShape">
+               <enum>QFrame::NoFrame</enum>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+              <property name="margin">
+               <number>0</number>
+              </property>
+              <property name="indent">
+               <number>-1</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QWidget" name="widget_4" native="true"/>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="reconnectButton">
+           <property name="text">
+            <string>Reconnect</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
       <string>Run Engine</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
-      <item row="1" column="0">
-       <widget class="QPushButton" name="runEngineCloseButton">
+      <item row="0" column="0">
+       <widget class="QPushButton" name="runEngineOpenButton">
         <property name="toolTip">
-         <string>Initiate the operation of closing the existing RE Worker environment. Fails if there is no existing environment or if RE Manager is not in ‘idle’ state.</string>
+         <string>Initiate the creation of a new RE Worker environment. The request will succeed only if RE Manager is in ‘idle’ state and the environment does not exist.</string>
         </property>
         <property name="text">
-         <string>Close</string>
+         <string>Open</string>
         </property>
        </widget>
       </item>
@@ -46,51 +114,51 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="0">
-       <widget class="QPushButton" name="runEngineOpenButton">
+      <item row="1" column="0">
+       <widget class="QPushButton" name="runEngineCloseButton">
         <property name="toolTip">
-         <string>Initiate the creation of a new RE Worker environment. The request will succeed only if RE Manager is in ‘idle’ state and the environment does not exist.</string>
+         <string>Initiate the operation of closing the existing RE Worker environment. Fails if there is no existing environment or if RE Manager is not in ‘idle’ state.</string>
         </property>
         <property name="text">
-         <string>Open</string>
+         <string>Close</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLabel" name="RELEDLabel">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>20</width>
+          <height>20</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: transparent; border-radius: 8px;</string>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+        <property name="margin">
+         <number>0</number>
+        </property>
+        <property name="indent">
+         <number>-1</number>
         </property>
        </widget>
       </item>
      </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QLabel" name="RELEDLabel">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>20</width>
-       <height>20</height>
-      </size>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">background-color: transparent; border-radius: 8px;</string>
-     </property>
-     <property name="frameShape">
-      <enum>QFrame::NoFrame</enum>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-     <property name="margin">
-      <number>0</number>
-     </property>
-     <property name="indent">
-      <number>-1</number>
-     </property>
     </widget>
    </item>
    <item>

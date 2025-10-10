@@ -37,7 +37,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Initialize Queue Server Model
         self.model = QueueServerModel()
+        self.setup()
 
+    def setup(self):
+        """Setup model signal connections and create widgets."""
         # Connect model signals to MainWindow handlers
         self.model.connectionChanged.connect(self.onConnectionChanged)
         self.model.statusChanged.connect(self.onStatusChanged)
@@ -50,34 +53,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.actionExit.triggered.connect(self.doClose)
 
         # Create widgets with connection
-        self.status_widget = StatusWidget(self, model=self.model)
-        self.groupBox_status.layout().addWidget(self.status_widget)
-        self.model.connectionChanged.connect(self.status_widget.onConnectionChanged)
-        self.model.connectionChanged.connect(self.status_widget.onStatusChanged)
-
-        self.plan_editor_widget = PlanEditorWidget(self, model=self.model)
-        self.groupBox_editor.layout().addWidget(self.plan_editor_widget)
-        self.model.connectionChanged.connect(
-            self.plan_editor_widget.onConnectionChanged
-        )
-        self.model.connectionChanged.connect(self.plan_editor_widget.onStatusChanged)
-
-        self.queue_editor_widget = QueueEditorWidget(self, model=self.model)
-        self.groupBox_queue.layout().addWidget(self.queue_editor_widget)
-        self.model.connectionChanged.connect(
-            self.queue_editor_widget.onConnectionChanged
-        )
-        self.model.connectionChanged.connect(self.queue_editor_widget.onStatusChanged)
-
-        self.history_widget = HistoryWidget(self, model=self.model)
-        self.groupBox_history.layout().addWidget(self.history_widget)
-        self.model.connectionChanged.connect(self.history_widget.onConnectionChanged)
-        self.model.connectionChanged.connect(self.history_widget.onStatusChanged)
-
-        self.console_widget = ConsoleWidget(self, model=self.model)
-        self.groupBox_console.layout().addWidget(self.console_widget)
-        self.model.connectionChanged.connect(self.console_widget.onConnectionChanged)
-        self.model.connectionChanged.connect(self.console_widget.onStatusChanged)
+        self._setup_widget(StatusWidget, "groupBox_status", "status_widget")
+        self._setup_widget(PlanEditorWidget, "groupBox_editor", "plan_editor_widget")
+        self._setup_widget(QueueEditorWidget, "groupBox_queue", "queue_editor_widget")
+        self._setup_widget(HistoryWidget, "groupBox_history", "history_widget")
+        self._setup_widget(ConsoleWidget, "groupBox_console", "console_widget")
 
         # Initialize connection to Queue Server
         self.initializeConnection()
@@ -94,6 +74,25 @@ class MainWindow(QtWidgets.QMainWindow):
 
         settings.restoreWindowGeometry(self, "mainwindow_geometry")
         print("Settings are saved in:", settings.fileName())
+
+    def _setup_widget(self, widget_class, parent_groupbox, widget_name):
+        """
+        Helper function to create a widget and connect it to model signals.
+
+        Args:
+            widget_class: The widget class to instantiate
+            parent_groupbox: The groupbox to add the widget to
+            widget_name: Name for the widget attribute (e.g., 'status_widget')
+        """
+        widget = widget_class(self, model=self.model)
+        getattr(self, parent_groupbox).layout().addWidget(widget)
+
+        # Connect model signals to widget
+        self.model.connectionChanged.connect(widget.onConnectionChanged)
+        self.model.statusChanged.connect(widget.onStatusChanged)
+
+        # Store widget reference
+        setattr(self, widget_name, widget)
 
     @property
     def status(self):
@@ -198,6 +197,9 @@ class MainWindow(QtWidgets.QMainWindow):
         if is_connected:
             self.setStatus(f"Connected to {control_addr} - {info_addr}")
             self.updateServerTitle(control_addr, info_addr)
+        elif control_addr == "reconnecting":
+            self.setStatus("Reconnecting...")
+            self.updateServerTitle("", "")
         else:
             self.setStatus("Disconnected from the server")
             self.updateServerTitle("", "")

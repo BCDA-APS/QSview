@@ -28,10 +28,14 @@ class StatusWidget(QtWidgets.QWidget):
 
         self._update_RE_status()
         self._update_REM_status()
+        self._update_QS_status()
         self.setup()
 
     def setup(self):
         """Setup connections and initialize status."""
+
+        # QS connection button
+        self.reconnectButton.clicked.connect(self.do_reconnect)
 
         # RE environment buttons
         self.runEngineOpenButton.clicked.connect(self.do_RE_open)
@@ -50,6 +54,13 @@ class StatusWidget(QtWidgets.QWidget):
         self.reHaltButton.clicked.connect(self.do_RE_halt)
         self.reAbortButton.clicked.connect(self.do_RE_abort)
         self.reStopButton.clicked.connect(self.do_RE_stop)
+
+    # QS connection method
+
+    def do_reconnect(self):
+        """Attempt to reconnect to the last successful server."""
+        if self.model:
+            self.model.attemptReconnect()
 
     # Queue control buttons
 
@@ -271,6 +282,24 @@ class StatusWidget(QtWidgets.QWidget):
         except Exception:
             return None
 
+    def _update_QS_status(self):
+        """Update UI based on connection state."""
+
+        if self.model and self.model.isConnected():
+            pixmap = QtGui.QPixmap(ICON_GREEN_LED)
+            self.QSLEDLabel.setPixmap(
+                pixmap.scaled(
+                    20, 20, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation
+                )
+            )
+        else:
+            pixmap = QtGui.QPixmap(ICON_RED_LED)
+            self.QSLEDLabel.setPixmap(
+                pixmap.scaled(
+                    20, 20, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation
+                )
+            )
+
     def _update_RE_status(self):
         """Update UI based on connection state."""
         rem_api = self.model.getREManagerAPI() if self.model else None
@@ -329,9 +358,11 @@ class StatusWidget(QtWidgets.QWidget):
         """Handle periodic status updates from model (every 2s)."""
         self._update_RE_status()
         self._update_REM_status()
+        self._update_QS_status()
 
     def onConnectionChanged(self, is_connected, control_addr, info_addr):
         """Handle connection changes from model signal."""
         self._update_RE_status()
         self._update_REM_status()
+        self._update_QS_status()
         # TODO: Add other connection-dependent updates here
