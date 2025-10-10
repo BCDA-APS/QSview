@@ -9,8 +9,8 @@ and emitting signals when state changes occur.
     ~QueueServerModel
 """
 
-from PyQt5 import QtCore
 from bluesky_queueserver_api.zmq import REManagerAPI
+from PyQt5 import QtCore
 
 
 class QueueServerModel(QtCore.QObject):
@@ -101,7 +101,8 @@ class QueueServerModel(QtCore.QObject):
             self._rem_api = None
             self._control_addr = ""
             self._info_addr = ""
-
+            # Emit disconnection connection state changed
+            self.connectionChanged.emit(False, "", "")
             return (False, str(e))
 
     def disconnectFromServer(self):
