@@ -6,6 +6,7 @@ Defines MainWindow class.
     ~MainWindow
 """
 
+from logging import info
 from bluesky_queueserver_api.zmq import REManagerAPI
 from PyQt5 import QtCore, QtWidgets
 
@@ -180,6 +181,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
             # Update status
             self.setStatus(f"Connected to {control_addr} - {info_addr}")
+            self.updateServerTitle(control_addr, info_addr)
 
         except Exception as e:
             self.setStatus(f"Connection failed: {e}")
+
+    def updateServerTitle(self, control_addr, info_addr):
+        """Update the status bar groupbox title with server addresses."""
+        if control_addr and info_addr:
+            self.groupBox_status.setTitle(f"QS Address: {control_addr} - {info_addr}")
+        else:
+            self.groupBox_status.setTitle("QS Address: Not Connected")
