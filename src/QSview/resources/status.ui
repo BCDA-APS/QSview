@@ -80,6 +80,9 @@
          </item>
          <item>
           <widget class="QPushButton" name="reconnectButton">
+           <property name="toolTip">
+            <string>Reconnect to the last successful server</string>
+           </property>
            <property name="text">
             <string>Reconnect</string>
            </property>
@@ -227,7 +230,7 @@
           <number>0</number>
          </property>
          <property name="topMargin">
-          <number>0</number>
+          <number>10</number>
          </property>
          <property name="rightMargin">
           <number>0</number>
@@ -278,7 +281,7 @@
    <item>
     <widget class="QGroupBox" name="groupBox_3">
      <property name="title">
-      <string>Plan Control</string>
+      <string>Run Engine Control</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
       <property name="verticalSpacing">
