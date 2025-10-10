@@ -6,12 +6,11 @@ Defines MainWindow class.
     ~MainWindow
 """
 
-from logging import info
-from bluesky_queueserver_api.zmq import REManagerAPI
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtWidgets
 
 from . import APP_TITLE, utils
 from .connection_dialog import ConnectionDialog
+from .queueserver_model import QueueServerModel
 from .recentservers_dialog import RecentServersDialog
 from .user_settings import settings
 from .widgets import (
@@ -31,15 +30,17 @@ class MainWindow(QtWidgets.QMainWindow):
 
     """
 
-    connectionChanged = QtCore.pyqtSignal(object)  # Emits the rem_api object
-
     def __init__(self):
         super().__init__()
         utils.myLoadUi(UI_FILE, baseinstance=self)
         self.setWindowTitle(APP_TITLE)
 
-        # Initialize RE Manager API
-        self.rem_api = None
+        # Initialize Queue Server Model
+        self.model = QueueServerModel()
+
+        # Connect model signals to MainWindow handlers
+        self.model.connectionChanged.connect(self.onConnectionChanged)
+        self.model.statusChanged.connect(self.onStatusChanged)
 
         # Mainwindow File Menu
         self.actionOpen.triggered.connect(self.doOpen)
@@ -49,25 +50,34 @@ class MainWindow(QtWidgets.QMainWindow):
         self.actionExit.triggered.connect(self.doClose)
 
         # Create widgets with connection
-        self.status_widget = StatusWidget(self, rem_api=self.rem_api)
+        self.status_widget = StatusWidget(self, model=self.model)
         self.groupBox_status.layout().addWidget(self.status_widget)
-        self.connectionChanged.connect(self.status_widget.onConnectionChanged)
+        self.model.connectionChanged.connect(self.status_widget.onConnectionChanged)
+        self.model.connectionChanged.connect(self.status_widget.onStatusChanged)
 
-        self.plan_editor_widget = PlanEditorWidget(self, rem_api=self.rem_api)
+        self.plan_editor_widget = PlanEditorWidget(self, model=self.model)
         self.groupBox_editor.layout().addWidget(self.plan_editor_widget)
-        self.connectionChanged.connect(self.plan_editor_widget.onConnectionChanged)
+        self.model.connectionChanged.connect(
+            self.plan_editor_widget.onConnectionChanged
+        )
+        self.model.connectionChanged.connect(self.plan_editor_widget.onStatusChanged)
 
-        self.queue_editor_widget = QueueEditorWidget(self, rem_api=self.rem_api)
+        self.queue_editor_widget = QueueEditorWidget(self, model=self.model)
         self.groupBox_queue.layout().addWidget(self.queue_editor_widget)
-        self.connectionChanged.connect(self.queue_editor_widget.onConnectionChanged)
+        self.model.connectionChanged.connect(
+            self.queue_editor_widget.onConnectionChanged
+        )
+        self.model.connectionChanged.connect(self.queue_editor_widget.onStatusChanged)
 
-        self.history_widget = HistoryWidget(self, rem_api=self.rem_api)
+        self.history_widget = HistoryWidget(self, model=self.model)
         self.groupBox_history.layout().addWidget(self.history_widget)
-        self.connectionChanged.connect(self.history_widget.onConnectionChanged)
+        self.model.connectionChanged.connect(self.history_widget.onConnectionChanged)
+        self.model.connectionChanged.connect(self.history_widget.onStatusChanged)
 
-        self.console_widget = ConsoleWidget(self, rem_api=self.rem_api)
+        self.console_widget = ConsoleWidget(self, model=self.model)
         self.groupBox_console.layout().addWidget(self.console_widget)
-        self.connectionChanged.connect(self.console_widget.onConnectionChanged)
+        self.model.connectionChanged.connect(self.console_widget.onConnectionChanged)
+        self.model.connectionChanged.connect(self.console_widget.onStatusChanged)
 
         # Initialize connection to Queue Server
         self.initializeConnection()
@@ -129,6 +139,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.connectToServer(control_addr, info_addr)
 
     def doClear(self):
+        """Clear all recent servers from the list."""
         reply = QtWidgets.QMessageBox.question(
             self,
             "Clear Recent Servers",
@@ -152,6 +163,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         User clicked the big [X] to quit.
         """
+        self.model.disconnectFromServer()
         self.doClose()
         event.accept()  # let the window close
 
@@ -163,32 +175,33 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             self.doOpen()
 
-    def connectToServer(self, control_addr, info_addr):
-        """Connect to specified server addresses"""
-        try:
-            # Create new RE Manager API
-            self.rem_api = REManagerAPI(
-                zmq_control_addr=control_addr,
-                zmq_info_addr=info_addr,
-            )
-
-            # Emit signal to widgets
-            self.connectionChanged.emit(self.rem_api)
-
-            # Save to recent servers
-            settings.addRecentServer(control_addr, info_addr)
-            settings.setLastServerAddress(control_addr, info_addr)
-
-            # Update status
-            self.setStatus(f"Connected to {control_addr} - {info_addr}")
-            self.updateServerTitle(control_addr, info_addr)
-
-        except Exception as e:
-            self.setStatus(f"Connection failed: {e}")
-
     def updateServerTitle(self, control_addr, info_addr):
         """Update the status bar groupbox title with server addresses."""
         if control_addr and info_addr:
-            self.groupBox_status.setTitle(f"QS Address: {control_addr} - {info_addr}")
+            self.groupBox_status.setTitle(f"Connected to: {control_addr} - {info_addr}")
         else:
-            self.groupBox_status.setTitle("QS Address: Not Connected")
+            self.groupBox_status.setTitle("Not Connected")
+
+    def connectToServer(self, control_addr, info_addr):
+        """Connect to specified server addresses"""
+
+        success, msg = self.model.connectToServer(control_addr, info_addr)
+        if success:
+            # Save to recent servers
+            settings.addRecentServer(control_addr, info_addr)
+            settings.setLastServerAddress(control_addr, info_addr)
+        else:
+            self.setStatus(f"Connection failed: {msg}")
+
+    def onConnectionChanged(self, is_connected, control_addr, info_addr):
+        """Handle connection state changes (successful connection, connection lost, disconnection)."""
+        if is_connected:
+            self.setStatus(f"Connected to {control_addr} - {info_addr}")
+            self.updateServerTitle(control_addr, info_addr)
+        else:
+            self.setStatus("Disconnected from the server")
+            self.updateServerTitle("", "")
+
+    def onStatusChanged(self, status):
+        """Handle status updates"""
+        pass

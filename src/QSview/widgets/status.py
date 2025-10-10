@@ -19,12 +19,12 @@ class StatusWidget(QtWidgets.QWidget):
 
     ui_file = utils.getUiFileName(__file__)
 
-    def __init__(self, parent=None, rem_api=None):
+    def __init__(self, parent=None, model=None):
         super().__init__(parent)
         utils.myLoadUi(self.ui_file, baseinstance=self)
 
         self.mainwindow = parent
-        self.rem_api = rem_api
+        self.model = model
 
         self._update_RE_status()
         self._update_REM_status()
@@ -51,18 +51,16 @@ class StatusWidget(QtWidgets.QWidget):
         self.reAbortButton.clicked.connect(self.do_RE_abort)
         self.reStopButton.clicked.connect(self.do_RE_stop)
 
-        # # Auto-update REM status every 2 seconds
-        # self.timer = QtCore.QTimer()
-        # self.timer.timeout.connect(self._update_RE_status)
-        # self.timer.timeout.connect(self._update_REM_status)
-        # self.timer.start(2000)  # 2 seconds
-
     # Queue control buttons
 
     def do_queue_start(self):
         """Start the queue."""
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
+            self.mainwindow.setStatus("Not connected to server")
+            return
         try:
-            success, msg = self.rem_api.queue_start()
+            success, msg = rem_api.queue_start()
             if not success:
                 self.mainwindow.setStatus(f"Error starting queue: {msg}")
             else:
@@ -72,8 +70,12 @@ class StatusWidget(QtWidgets.QWidget):
 
     def do_queue_stop(self):
         """Stop the queue."""
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
+            self.mainwindow.setStatus("Not connected to server")
+            return
         try:
-            success, msg = self.rem_api.queue_stop()
+            success, msg = rem_api.queue_stop()
             if not success:
                 self.mainwindow.setStatus(f"Error stopping queue: {msg}")
             else:
@@ -83,10 +85,12 @@ class StatusWidget(QtWidgets.QWidget):
 
     def do_auto_start(self):
         """Set the auto-start state."""
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
+            self.mainwindow.setStatus("Not connected to server")
+            return
         try:
-            success, msg = self.rem_api.queue_autostart(
-                self.autoStartCheckBox.isChecked()
-            )
+            success, msg = rem_api.queue_autostart(self.autoStartCheckBox.isChecked())
             if not success:
                 self.mainwindow.setStatus(f"Error setting auto-start: {msg}")
             else:
@@ -98,10 +102,14 @@ class StatusWidget(QtWidgets.QWidget):
 
     def do_RE_open(self):
         """Open the Run Engine environment."""
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
+            self.mainwindow.setStatus("Not connected to server")
+            return
         try:
             if self.RE_state() is None:
                 self.mainwindow.setStatus("Opening Run Engine...")
-                success, msg = self.rem_api.environment_open()
+                success, msg = rem_api.environment_open()
                 if not success:
                     self.mainwindow.setStatus(f"Error opening environment: {msg}")
                 else:
@@ -113,10 +121,14 @@ class StatusWidget(QtWidgets.QWidget):
 
     def do_RE_close(self):
         """Close the Run Engine environment."""
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
+            self.mainwindow.setStatus("Not connected to server")
+            return
         try:
             if self.RE_state() is not None:
                 self.mainwindow.setStatus("Closing Run Engine...")
-                success, msg = self.rem_api.environment_close()
+                success, msg = rem_api.environment_close()
                 if not success:
                     self.mainwindow.setStatus(f"Error closing environment: {msg}")
                 else:
@@ -128,10 +140,14 @@ class StatusWidget(QtWidgets.QWidget):
 
     def do_RE_destroy(self):
         """Destroy the Run Engine environment."""
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
+            self.mainwindow.setStatus("Not connected to server")
+            return
         try:
             if self.RE_state() is not None:
                 self.mainwindow.setStatus("Destroying Run Engine...")
-                success, msg = self.rem_api.environment_destroy()
+                success, msg = rem_api.environment_destroy()
                 if not success:
                     self.mainwindow.setStatus(f"Error destroying environment: {msg}")
                 else:
@@ -143,8 +159,12 @@ class StatusWidget(QtWidgets.QWidget):
 
     def do_RE_pause_deferred(self):
         """Pause the Run Engine at the next checkpoint (deferred)."""
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
+            self.mainwindow.setStatus("Not connected to server")
+            return
         try:
-            success, msg = self.rem_api.re_pause("deferred")
+            success, msg = rem_api.re_pause("deferred")
             if not success:
                 self.mainwindow.setStatus(f"Error pausing Run Engine: {msg}")
             else:
@@ -156,8 +176,12 @@ class StatusWidget(QtWidgets.QWidget):
 
     def do_RE_pause_immediate(self):
         """Pause the Run Engine immediately."""
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
+            self.mainwindow.setStatus("Not connected to server")
+            return
         try:
-            success, msg = self.rem_api.re_pause("immediate")
+            success, msg = rem_api.re_pause("immediate")
             if not success:
                 self.mainwindow.setStatus(f"Error pausing Run Engine: {msg}")
             else:
@@ -167,8 +191,12 @@ class StatusWidget(QtWidgets.QWidget):
 
     def do_RE_resume(self):
         """Resume the Run Engine."""
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
+            self.mainwindow.setStatus("Not connected to server")
+            return
         try:
-            success, msg = self.rem_api.re_resume()
+            success, msg = rem_api.re_resume()
             if not success:
                 self.mainwindow.setStatus(f"Error resuming Run Engine: {msg}")
             else:
@@ -178,8 +206,12 @@ class StatusWidget(QtWidgets.QWidget):
 
     def do_RE_halt(self):
         """Halt the Run Engine."""
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
+            self.mainwindow.setStatus("Not connected to server")
+            return
         try:
-            success, msg = self.rem_api.re_halt()
+            success, msg = rem_api.re_halt()
             if not success:
                 self.mainwindow.setStatus(f"Error halting Run Engine: {msg}")
             else:
@@ -189,8 +221,12 @@ class StatusWidget(QtWidgets.QWidget):
 
     def do_RE_abort(self):
         """Abort the Run Engine."""
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
+            self.mainwindow.setStatus("Not connected to server")
+            return
         try:
-            success, msg = self.rem_api.re_abort()
+            success, msg = rem_api.re_abort()
             if not success:
                 self.mainwindow.setStatus(f"Error aborting Run Engine: {msg}")
             else:
@@ -200,8 +236,12 @@ class StatusWidget(QtWidgets.QWidget):
 
     def do_RE_stop(self):
         """Stop the Run Engine."""
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
+            self.mainwindow.setStatus("Not connected to server")
+            return
         try:
-            success, msg = self.rem_api.re_stop()
+            success, msg = rem_api.re_stop()
             if not success:
                 self.mainwindow.setStatus(f"Error stopping Run Engine: {msg}")
             else:
@@ -213,24 +253,30 @@ class StatusWidget(QtWidgets.QWidget):
 
     def REM_state(self):
         """Get the current REM state."""
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
+            return None
         try:
-            return self.rem_api.status()
+            return rem_api.status()
         except Exception:
             return None
 
     def RE_state(self):
         """Get the current RE state."""
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
+            return None
         try:
-            return self.rem_api.status().get("re_state", None)
+            return rem_api.status().get("re_state", None)
         except Exception:
             return None
 
     def _update_RE_status(self):
         """Update UI based on connection state."""
-        if not self.rem_api:
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
             # Clear all labels when disconnected
             self.RELEDLabel.setText("")
-            # self.REStatusLabel.setText("")
             return
 
         RE_state = self.RE_state()
@@ -260,8 +306,8 @@ class StatusWidget(QtWidgets.QWidget):
             self.loopLabel,
             self.stopLabel,
         ]
-
-        if not self.rem_api:
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
             # Clear all labels when disconnected
             for label in labels:
                 label.setText("")
@@ -279,9 +325,13 @@ class StatusWidget(QtWidgets.QWidget):
         self.loopLabel.setText("ON" if plan_mode.get("loop") else "OFF")
         self.stopLabel.setText("YES" if REM_state.get("queue_stop_pending") else "NO")
 
-    def onConnectionChanged(self, rem_api):
-        """Handle connection changes from MainWindow signal."""
-        self.rem_api = rem_api
+    def onStatusChanged(self, status):
+        """Handle periodic status updates from model (every 2s)."""
+        self._update_RE_status()
+        self._update_REM_status()
+
+    def onConnectionChanged(self, is_connected, control_addr, info_addr):
+        """Handle connection changes from model signal."""
         self._update_RE_status()
         self._update_REM_status()
         # TODO: Add other connection-dependent updates here
