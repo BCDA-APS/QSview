@@ -96,7 +96,7 @@ class MainWindow(QtWidgets.QMainWindow):
         setattr(self, widget_name, widget)
 
     @property
-    def status(self):
+    def message(self):
         """Returns the current message in the mainwindow status bar.
 
         Returns:
@@ -104,8 +104,8 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         return self.statusbar.currentMessage()
 
-    def setStatus(self, text, timeout=0):
-        """Write new status to the main window and terminal output."""
+    def setMessage(self, text, timeout=0):
+        """Write new message to the main window status bar and terminal output."""
         print(text)
         self.statusbar.showMessage(str(text), msecs=timeout)
 
@@ -130,7 +130,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """Open recent servers dialog"""
         recent_servers = settings.getRecentServers()
         if not recent_servers:
-            self.setStatus("No recent servers found")
+            self.setMessage("No recent servers found")
             return
         dialog = RecentServersDialog(self, recent_servers)
         if dialog.exec_() == QtWidgets.QDialog.Accepted:  # User click OK
@@ -149,13 +149,13 @@ class MainWindow(QtWidgets.QMainWindow):
         )
         if reply == QtWidgets.QMessageBox.Yes:
             settings.clearRecentServers()
-            self.setStatus("Recent servers cleared")
+            self.setMessage("Recent servers cleared")
 
     def doClose(self, *args, **kw):
         """
         User chose exit (or quit), or closeEvent() was called.
         """
-        self.setStatus("Application quitting ...")
+        self.setMessage("Application quitting ...")
         settings.saveWindowGeometry(self, "mainwindow_geometry")
         self.close()
 
@@ -184,20 +184,20 @@ class MainWindow(QtWidgets.QMainWindow):
             settings.addRecentServer(control_addr, info_addr)
             settings.setLastServerAddress(control_addr, info_addr)
         else:
-            self.setStatus(f"Connection failed: {msg}")
+            self.setMessage(f"Connection failed: {msg}")
 
     def onConnectionChanged(self, is_connected, control_addr, info_addr):
         """Handle connection state changes (successful connection, connection lost, disconnection)."""
         if is_connected:
-            self.setStatus(f"Connected to {control_addr} - {info_addr}")
+            self.setMessage(f"Connected to {control_addr} - {info_addr}")
         elif control_addr == "reconnecting":
-            self.setStatus("Reconnecting...")
+            self.setMessage("Reconnecting...")
         else:
-            self.setStatus("Disconnected from the server")
+            self.setMessage("Disconnected from the server")
 
     def onMessageChanged(self, msg):
         """Handle status messages from the model."""
-        self.setStatus(msg)
+        self.setMessage(msg)
 
     def onStatusChanged(self, status):
         """Handle status updates"""

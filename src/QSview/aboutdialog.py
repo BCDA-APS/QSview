@@ -51,7 +51,7 @@ class AboutDialog(QtWidgets.QDialog):
         self.authors.setText(", ".join(AUTHOR_LIST))
         self.copyright.setText(COPYRIGHT_TEXT)
 
-        self.setStatus(f"About {APP_TITLE}, {pid=}")
+        self.setMessage(f"About {APP_TITLE}, {pid=}")
 
         # handle the push buttons
         self.docs_pb.setToolTip(DOCS_URL)
@@ -78,32 +78,32 @@ class AboutDialog(QtWidgets.QDialog):
 
     def doDocsUrl(self):
         """opening documentation URL in default browser"""
-        self.setStatus("opening documentation URL in default browser")
+        self.setMessage("opening documentation URL in default browser")
         self.doUrl(DOCS_URL)
 
     def doIssuesUrl(self):
         """opening issues URL in default browser"""
-        self.setStatus("opening issues URL in default browser")
+        self.setMessage("opening issues URL in default browser")
         self.doUrl(ISSUES_URL)
 
     def doLicense(self):
         """show the license"""
         from .licensedialog import LicenseDialog
 
-        self.setStatus("opening License in new window")
+        self.setMessage("opening License in new window")
 
         license = LicenseDialog(self)
-        license.finished.connect(self.clearStatus)
+        license.finished.connect(self.clearMessage)
         license.open()  # modal: must close licensedialog BEFORE aboutdialog
 
-    def clearStatus(self):
-        """_summary_"""
-        self.setStatus("")
+    def clearMessage(self):
+        """Clear the message in the status bar."""
+        self.setMessage("")
 
-    def setStatus(self, text):
-        """_summary_
+    def setMessage(self, text):
+        """Set the message in the parent's status bar.
 
         Args:
-            text (_type_): _description_
+            text: The message text to display
         """
-        self.parent.setStatus(text)
+        self.parent.setMessage(text)

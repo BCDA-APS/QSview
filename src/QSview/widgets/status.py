@@ -68,46 +68,46 @@ class StatusWidget(QtWidgets.QWidget):
         """Start the queue."""
         rem_api = self.model.getREManagerAPI() if self.model else None
         if not rem_api:
-            self.mainwindow.setStatus("Not connected to server")
+            self.mainwindow.setMessage("Not connected to server")
             return
         try:
             success, msg = rem_api.queue_start()
             if not success:
-                self.mainwindow.setStatus(f"Error starting queue: {msg}")
+                self.mainwindow.setMessage(f"Error starting queue: {msg}")
             else:
-                self.mainwindow.setStatus("Queue started successfully")
+                self.mainwindow.setMessage("Queue started successfully")
         except Exception as e:
-            self.mainwindow.setStatus(f"Error starting queue: {e}")
+            self.mainwindow.setMessage(f"Error starting queue: {e}")
 
     def do_queue_stop(self):
         """Stop the queue."""
         rem_api = self.model.getREManagerAPI() if self.model else None
         if not rem_api:
-            self.mainwindow.setStatus("Not connected to server")
+            self.mainwindow.setMessage("Not connected to server")
             return
         try:
             success, msg = rem_api.queue_stop()
             if not success:
-                self.mainwindow.setStatus(f"Error stopping queue: {msg}")
+                self.mainwindow.setMessage(f"Error stopping queue: {msg}")
             else:
-                self.mainwindow.setStatus("Queue stopped successfully")
+                self.mainwindow.setMessage("Queue stopped successfully")
         except Exception as e:
-            self.mainwindow.setStatus(f"Error stopping queue: {e}")
+            self.mainwindow.setMessage(f"Error stopping queue: {e}")
 
     def do_auto_start(self):
         """Set the auto-start state."""
         rem_api = self.model.getREManagerAPI() if self.model else None
         if not rem_api:
-            self.mainwindow.setStatus("Not connected to server")
+            self.mainwindow.setMessage("Not connected to server")
             return
         try:
             success, msg = rem_api.queue_autostart(self.autoStartCheckBox.isChecked())
             if not success:
-                self.mainwindow.setStatus(f"Error setting auto-start: {msg}")
+                self.mainwindow.setMessage(f"Error setting auto-start: {msg}")
             else:
-                self.mainwindow.setStatus("Auto-start set successfully")
+                self.mainwindow.setMessage("Auto-start set successfully")
         except Exception as e:
-            self.mainwindow.setStatus(f"Error setting auto-start: {e}")
+            self.mainwindow.setMessage(f"Error setting auto-start: {e}")
 
     # Run Engine control buttons
 
@@ -115,150 +115,150 @@ class StatusWidget(QtWidgets.QWidget):
         """Open the Run Engine environment."""
         rem_api = self.model.getREManagerAPI() if self.model else None
         if not rem_api:
-            self.mainwindow.setStatus("Not connected to server")
+            self.mainwindow.setMessage("Not connected to server")
             return
         try:
             if self.RE_state() is None:
-                self.mainwindow.setStatus("Opening Run Engine...")
+                self.mainwindow.setMessage("Opening Run Engine...")
                 success, msg = rem_api.environment_open()
                 if not success:
-                    self.mainwindow.setStatus(f"Error opening environment: {msg}")
+                    self.mainwindow.setMessage(f"Error opening environment: {msg}")
                 else:
-                    self.mainwindow.setStatus("Run Engine opened")
+                    self.mainwindow.setMessage("Run Engine opened")
             else:
-                self.mainwindow.setStatus("Environment already exists")
+                self.mainwindow.setMessage("Environment already exists")
         except Exception as e:
-            self.mainwindow.setStatus(f"Error opening environment: {e}")
+            self.mainwindow.setMessage(f"Error opening environment: {e}")
 
     def do_RE_close(self):
         """Close the Run Engine environment."""
         rem_api = self.model.getREManagerAPI() if self.model else None
         if not rem_api:
-            self.mainwindow.setStatus("Not connected to server")
+            self.mainwindow.setMessage("Not connected to server")
             return
         try:
             if self.RE_state() is not None:
-                self.mainwindow.setStatus("Closing Run Engine...")
+                self.mainwindow.setMessage("Closing Run Engine...")
                 success, msg = rem_api.environment_close()
                 if not success:
-                    self.mainwindow.setStatus(f"Error closing environment: {msg}")
+                    self.mainwindow.setMessage(f"Error closing environment: {msg}")
                 else:
-                    self.mainwindow.setStatus("Run Engine closed")
+                    self.mainwindow.setMessage("Run Engine closed")
             else:
-                self.mainwindow.setStatus("Environment already closed")
+                self.mainwindow.setMessage("Environment already closed")
         except Exception as e:
-            self.mainwindow.setStatus(f"Error closing environment: {e}")
+            self.mainwindow.setMessage(f"Error closing environment: {e}")
 
     def do_RE_destroy(self):
         """Destroy the Run Engine environment."""
         rem_api = self.model.getREManagerAPI() if self.model else None
         if not rem_api:
-            self.mainwindow.setStatus("Not connected to server")
+            self.mainwindow.setMessage("Not connected to server")
             return
         try:
             if self.RE_state() is not None:
-                self.mainwindow.setStatus("Destroying Run Engine...")
+                self.mainwindow.setMessage("Destroying Run Engine...")
                 success, msg = rem_api.environment_destroy()
                 if not success:
-                    self.mainwindow.setStatus(f"Error destroying environment: {msg}")
+                    self.mainwindow.setMessage(f"Error destroying environment: {msg}")
                 else:
-                    self.mainwindow.setStatus("Run Engine destroyed")
+                    self.mainwindow.setMessage("Run Engine destroyed")
             else:
-                self.mainwindow.setStatus("Environment already destroyed")
+                self.mainwindow.setMessage("Environment already destroyed")
         except Exception as e:
-            self.mainwindow.setStatus(f"Error destroying environment: {e}")
+            self.mainwindow.setMessage(f"Error destroying environment: {e}")
 
     def do_RE_pause_deferred(self):
         """Pause the Run Engine at the next checkpoint (deferred)."""
         rem_api = self.model.getREManagerAPI() if self.model else None
         if not rem_api:
-            self.mainwindow.setStatus("Not connected to server")
+            self.mainwindow.setMessage("Not connected to server")
             return
         try:
             success, msg = rem_api.re_pause("deferred")
             if not success:
-                self.mainwindow.setStatus(f"Error pausing Run Engine: {msg}")
+                self.mainwindow.setMessage(f"Error pausing Run Engine: {msg}")
             else:
-                self.mainwindow.setStatus(
+                self.mainwindow.setMessage(
                     "Run Engine will pause at the next checkpoint"
                 )
         except Exception as e:
-            self.mainwindow.setStatus(f"Error pausing Run Engine: {e}")
+            self.mainwindow.setMessage(f"Error pausing Run Engine: {e}")
 
     def do_RE_pause_immediate(self):
         """Pause the Run Engine immediately."""
         rem_api = self.model.getREManagerAPI() if self.model else None
         if not rem_api:
-            self.mainwindow.setStatus("Not connected to server")
+            self.mainwindow.setMessage("Not connected to server")
             return
         try:
             success, msg = rem_api.re_pause("immediate")
             if not success:
-                self.mainwindow.setStatus(f"Error pausing Run Engine: {msg}")
+                self.mainwindow.setMessage(f"Error pausing Run Engine: {msg}")
             else:
-                self.mainwindow.setStatus("Run Engine paused immediately")
+                self.mainwindow.setMessage("Run Engine paused immediately")
         except Exception as e:
-            self.mainwindow.setStatus(f"Error pausing Run Engine: {e}")
+            self.mainwindow.setMessage(f"Error pausing Run Engine: {e}")
 
     def do_RE_resume(self):
         """Resume the Run Engine."""
         rem_api = self.model.getREManagerAPI() if self.model else None
         if not rem_api:
-            self.mainwindow.setStatus("Not connected to server")
+            self.mainwindow.setMessage("Not connected to server")
             return
         try:
             success, msg = rem_api.re_resume()
             if not success:
-                self.mainwindow.setStatus(f"Error resuming Run Engine: {msg}")
+                self.mainwindow.setMessage(f"Error resuming Run Engine: {msg}")
             else:
-                self.mainwindow.setStatus("Run Engine resumed")
+                self.mainwindow.setMessage("Run Engine resumed")
         except Exception as e:
-            self.mainwindow.setStatus(f"Error resuming Run Engine: {e}")
+            self.mainwindow.setMessage(f"Error resuming Run Engine: {e}")
 
     def do_RE_halt(self):
         """Halt the Run Engine."""
         rem_api = self.model.getREManagerAPI() if self.model else None
         if not rem_api:
-            self.mainwindow.setStatus("Not connected to server")
+            self.mainwindow.setMessage("Not connected to server")
             return
         try:
             success, msg = rem_api.re_halt()
             if not success:
-                self.mainwindow.setStatus(f"Error halting Run Engine: {msg}")
+                self.mainwindow.setMessage(f"Error halting Run Engine: {msg}")
             else:
-                self.mainwindow.setStatus("Run Engine halted")
+                self.mainwindow.setMessage("Run Engine halted")
         except Exception as e:
-            self.mainwindow.setStatus(f"Error halting Run Engine: {e}")
+            self.mainwindow.setMessage(f"Error halting Run Engine: {e}")
 
     def do_RE_abort(self):
         """Abort the Run Engine."""
         rem_api = self.model.getREManagerAPI() if self.model else None
         if not rem_api:
-            self.mainwindow.setStatus("Not connected to server")
+            self.mainwindow.setMessage("Not connected to server")
             return
         try:
             success, msg = rem_api.re_abort()
             if not success:
-                self.mainwindow.setStatus(f"Error aborting Run Engine: {msg}")
+                self.mainwindow.setMessage(f"Error aborting Run Engine: {msg}")
             else:
-                self.mainwindow.setStatus("Run Engine aborted")
+                self.mainwindow.setMessage("Run Engine aborted")
         except Exception as e:
-            self.mainwindow.setStatus(f"Error aborting Run Engine: {e}")
+            self.mainwindow.setMessage(f"Error aborting Run Engine: {e}")
 
     def do_RE_stop(self):
         """Stop the Run Engine."""
         rem_api = self.model.getREManagerAPI() if self.model else None
         if not rem_api:
-            self.mainwindow.setStatus("Not connected to server")
+            self.mainwindow.setMessage("Not connected to server")
             return
         try:
             success, msg = rem_api.re_stop()
             if not success:
-                self.mainwindow.setStatus(f"Error stopping Run Engine: {msg}")
+                self.mainwindow.setMessage(f"Error stopping Run Engine: {msg}")
             else:
-                self.mainwindow.setStatus("Run Engine stopped")
+                self.mainwindow.setMessage("Run Engine stopped")
         except Exception as e:
-            self.mainwindow.setStatus(f"Error stopping Run Engine: {e}")
+            self.mainwindow.setMessage(f"Error stopping Run Engine: {e}")
 
     # Server, Run Engine Manager and Run Engine state
 
