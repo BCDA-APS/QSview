@@ -44,6 +44,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Connect model signals to MainWindow handlers
         self.model.connectionChanged.connect(self.onConnectionChanged)
         self.model.statusChanged.connect(self.onStatusChanged)
+        self.model.messageChanged.connect(self.onMessageChanged)
 
         # Mainwindow File Menu
         self.actionOpen.triggered.connect(self.doOpen)
@@ -205,6 +206,10 @@ class MainWindow(QtWidgets.QMainWindow):
             )
         else:
             self.status_widget.serverAddrLabel.setText("No Connection")
+
+    def onMessageChanged(self, msg):
+        """Handle status messages from the model."""
+        self.setStatus(msg)
 
     def onStatusChanged(self, status):
         """Handle status updates"""

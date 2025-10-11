@@ -37,6 +37,7 @@ class QueueServerModel(QtCore.QObject):
     statusChanged = QtCore.pyqtSignal(object)
     queueChanged = QtCore.pyqtSignal(object)
     historyChanged = QtCore.pyqtSignal(object)
+    messageChanged = QtCore.pyqtSignal(str)
 
     def __init__(self):
         super().__init__()
@@ -148,11 +149,13 @@ class QueueServerModel(QtCore.QObject):
             not self._last_successful_control_addr
             or not self._last_successful_info_addr
         ):
-            print("No previous connection to reconnect to")
+            self.messageChanged.emit("No previous connection to reconnect to")
             return
 
         self._is_reconnecting = True
-        print(f"Attempting to reconnect to {self._last_successful_control_addr}")
+        self.messageChanged.emit(
+            f"Attempting to reconnect to {self._last_successful_control_addr}"
+        )
 
         # Emit reconnecting signal
         self.connectionChanged.emit(False, "reconnecting", "")
@@ -161,7 +164,7 @@ class QueueServerModel(QtCore.QObject):
         )
         self._is_reconnecting = False
         if not success:
-            print(f"Reconnection failed: {msg}")
+            self.messageChanged.emit(f"Reconnection failed: {msg}")
 
     def _update_status(self):
         """
@@ -182,7 +185,7 @@ class QueueServerModel(QtCore.QObject):
 
         except Exception as e:
             # Connection lost
-            print(f"Connection lost: {e}")
+            self.messageChanged.emit(f"Connection lost: {e}")
             self.disconnectFromServer()
 
     def isConnected(self):
