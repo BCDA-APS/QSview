@@ -174,13 +174,6 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             self.doOpen()
 
-    def updateServerTitle(self, control_addr, info_addr):
-        """Update the status bar groupbox title with server addresses."""
-        if control_addr and info_addr:
-            self.groupBox_status.setTitle(f"Connected to: {control_addr} - {info_addr}")
-        else:
-            self.groupBox_status.setTitle("Not Connected")
-
     def connectToServer(self, control_addr, info_addr):
         """Connect to specified server addresses"""
 
@@ -196,13 +189,22 @@ class MainWindow(QtWidgets.QMainWindow):
         """Handle connection state changes (successful connection, connection lost, disconnection)."""
         if is_connected:
             self.setStatus(f"Connected to {control_addr} - {info_addr}")
-            self.updateServerTitle(control_addr, info_addr)
+            self.updateServerLabel(control_addr, info_addr)
         elif control_addr == "reconnecting":
             self.setStatus("Reconnecting...")
-            self.updateServerTitle("", "")
+            self.updateServerLabel("", "")
         else:
             self.setStatus("Disconnected from the server")
-            self.updateServerTitle("", "")
+            self.updateServerLabel("", "")
+
+    def updateServerLabel(self, control_addr, info_addr):
+        """Update the status bar groupbox title with server addresses."""
+        if control_addr and info_addr:
+            self.status_widget.serverAddrLabel.setText(
+                f"Connected to: {control_addr} - {info_addr}"
+            )
+        else:
+            self.status_widget.serverAddrLabel.setText("No Connection")
 
     def onStatusChanged(self, status):
         """Handle status updates"""
