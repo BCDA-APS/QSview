@@ -190,22 +190,10 @@ class MainWindow(QtWidgets.QMainWindow):
         """Handle connection state changes (successful connection, connection lost, disconnection)."""
         if is_connected:
             self.setStatus(f"Connected to {control_addr} - {info_addr}")
-            self.updateServerLabel(control_addr, info_addr)
         elif control_addr == "reconnecting":
             self.setStatus("Reconnecting...")
-            self.updateServerLabel("", "")
         else:
             self.setStatus("Disconnected from the server")
-            self.updateServerLabel("", "")
-
-    def updateServerLabel(self, control_addr, info_addr):
-        """Update the status bar groupbox title with server addresses."""
-        if control_addr and info_addr:
-            self.status_widget.serverAddrLabel.setText(
-                f"Connected to: {control_addr} - {info_addr}"
-            )
-        else:
-            self.status_widget.serverAddrLabel.setText("No Connection")
 
     def onMessageChanged(self, msg):
         """Handle status messages from the model."""

@@ -28,7 +28,7 @@ class StatusWidget(QtWidgets.QWidget):
 
         self._update_RE_status()
         self._update_REM_status()
-        self._update_QS_status()
+        self._update_QS_status(False, "", "")
         self.setup()
 
     def setup(self):
@@ -260,7 +260,7 @@ class StatusWidget(QtWidgets.QWidget):
         except Exception as e:
             self.mainwindow.setStatus(f"Error stopping Run Engine: {e}")
 
-    # Run Engine Manager and Run Engine state
+    # Server, Run Engine Manager and Run Engine state
 
     def REM_state(self):
         """Get the current REM state."""
@@ -282,10 +282,11 @@ class StatusWidget(QtWidgets.QWidget):
         except Exception:
             return None
 
-    def _update_QS_status(self):
+    def _update_QS_status(self, is_connected, control_addr, info_addr):
         """Update UI based on connection state."""
 
-        if self.model and self.model.isConnected():
+        if is_connected and control_addr and info_addr:
+            self.serverAddrLabel.setText(f"Connected to: {control_addr} - {info_addr}")
             pixmap = QtGui.QPixmap(ICON_GREEN_LED)
             self.QSLEDLabel.setPixmap(
                 pixmap.scaled(
@@ -293,6 +294,7 @@ class StatusWidget(QtWidgets.QWidget):
                 )
             )
         else:
+            self.serverAddrLabel.setText("No Connection")
             pixmap = QtGui.QPixmap(ICON_RED_LED)
             self.QSLEDLabel.setPixmap(
                 pixmap.scaled(
@@ -358,11 +360,9 @@ class StatusWidget(QtWidgets.QWidget):
         """Handle periodic status updates from model (every 2s)."""
         self._update_RE_status()
         self._update_REM_status()
-        self._update_QS_status()
 
     def onConnectionChanged(self, is_connected, control_addr, info_addr):
         """Handle connection changes from model signal."""
         self._update_RE_status()
         self._update_REM_status()
-        self._update_QS_status()
-        # TODO: Add other connection-dependent updates here
+        self._update_QS_status(is_connected, control_addr, info_addr)
