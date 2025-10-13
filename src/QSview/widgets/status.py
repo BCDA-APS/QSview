@@ -28,7 +28,9 @@ class StatusWidget(QtWidgets.QWidget):
 
         self._update_RE_status(None)
         self._update_REM_status(None)
+        self._update_Q_status(None)
         self._update_QS_status(False, "", "")
+
         self.setup()
 
     def setup(self):
@@ -55,14 +57,18 @@ class StatusWidget(QtWidgets.QWidget):
         self.reAbortButton.clicked.connect(self.do_RE_abort)
         self.reStopButton.clicked.connect(self.do_RE_stop)
 
-    # QS connection method
+    # ========================================
+    # Connection Control
+    # ========================================
 
     def do_reconnect(self):
         """Attempt to reconnect to the last successful server."""
         if self.model:
             self.model.attemptReconnect()
 
-    # Queue control buttons
+    # ========================================
+    # Queue Control
+    # ========================================
 
     def do_queue_start(self):
         """Start the queue."""
@@ -109,16 +115,9 @@ class StatusWidget(QtWidgets.QWidget):
         except Exception as e:
             self.mainwindow.setMessage(f"Error setting auto-start: {e}")
 
-    # Run Engine control buttons
-
-    def _get_cached_state(self):
-        if not self.model:
-            return None, False, None
-        rem_api = self.model.getREManagerAPI()
-        isConnected = self.model.isConnected()
-        status = self.model.getStatus()
-        re_status = status.get("re_state", None) if status else None
-        return rem_api, isConnected, re_status
+    # ========================================
+    # RE Environment Control (Infrastructure)
+    # ========================================
 
     def do_RE_open(self):
         """Open the Run Engine environment."""
@@ -176,6 +175,10 @@ class StatusWidget(QtWidgets.QWidget):
                 self.mainwindow.setMessage("Environment already destroyed")
         except Exception as e:
             self.mainwindow.setMessage(f"Error destroying environment: {e}")
+
+    # ========================================
+    # RE Execution Control (Run Control)
+    # ========================================
 
     def do_RE_pause_deferred(self):
         """Pause the Run Engine at the next checkpoint (deferred)."""
@@ -269,51 +272,9 @@ class StatusWidget(QtWidgets.QWidget):
         except Exception as e:
             self.mainwindow.setMessage(f"Error stopping Run Engine: {e}")
 
-    # Server, Run Engine Manager and Run Engine state
-
-    def _update_QS_status(self, is_connected, control_addr, info_addr):
-        """Update UI based on connection state."""
-
-        if is_connected and control_addr and info_addr:
-            self.serverAddrLabel.setText(f"Connected to: {control_addr} - {info_addr}")
-            pixmap = QtGui.QPixmap(ICON_GREEN_LED)
-            self.QSLEDLabel.setPixmap(
-                pixmap.scaled(
-                    20, 20, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation
-                )
-            )
-        else:
-            self.serverAddrLabel.setText("No Connection")
-            pixmap = QtGui.QPixmap(ICON_RED_LED)
-            self.QSLEDLabel.setPixmap(
-                pixmap.scaled(
-                    20, 20, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation
-                )
-            )
-
-    def _update_RE_status(self, status):
-        """Update UI based on connection state."""
-        if not status:
-            # Clear when no status
-            self.RELEDLabel.setText("")
-            return
-
-        RE_state = status.get("re_state", None)
-        if RE_state is not None:
-            pixmap = QtGui.QPixmap(ICON_GREEN_LED)
-            self.RELEDLabel.setPixmap(
-                pixmap.scaled(
-                    20, 20, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation
-                )
-            )
-        else:
-            pixmap = QtGui.QPixmap(ICON_RED_LED)
-            self.RELEDLabel.setPixmap(
-                pixmap.scaled(
-                    20, 20, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation
-                )
-            )
-        self.runengineLabel.setText(str(RE_state or "NONE").upper())
+    # ========================================
+    # Status Update Methods
+    # ========================================
 
     def _update_REM_status(self, status):
         """Update the status of the RE manager."""
@@ -341,10 +302,86 @@ class StatusWidget(QtWidgets.QWidget):
         self.loopLabel.setText("ON" if plan_mode.get("loop") else "OFF")
         self.stopLabel.setText("YES" if status.get("queue_stop_pending") else "NO")
 
-    def onStatusChanged(self, status):
+    def _update_RE_status(self, status):
+        """Update UI based on connection state."""
+        if not status:
+            # Clear when no status
+            self.RELEDLabel.setText("")
+            return
+
+        RE_state = status.get("re_state", None)
+        if RE_state is not None:
+            pixmap = QtGui.QPixmap(ICON_GREEN_LED)
+            self.RELEDLabel.setPixmap(
+                pixmap.scaled(
+                    20, 20, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation
+                )
+            )
+        else:
+            pixmap = QtGui.QPixmap(ICON_RED_LED)
+            self.RELEDLabel.setPixmap(
+                pixmap.scaled(
+                    20, 20, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation
+                )
+            )
+        self.runengineLabel.setText(str(RE_state or "NONE").upper())
+
+    def _update_QS_status(self, is_connected, control_addr, info_addr):
+        """Update UI based on connection state."""
+
+        if is_connected and control_addr and info_addr:
+            self.serverAddrLabel.setText(f"Connected to: {control_addr} - {info_addr}")
+            pixmap = QtGui.QPixmap(ICON_GREEN_LED)
+            self.QSLEDLabel.setPixmap(
+                pixmap.scaled(
+                    20, 20, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation
+                )
+            )
+        else:
+            self.serverAddrLabel.setText("No Connection")
+            pixmap = QtGui.QPixmap(ICON_RED_LED)
+            self.QSLEDLabel.setPixmap(
+                pixmap.scaled(
+                    20, 20, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation
+                )
+            )
+
+    def _update_Q_status(self, status):
+        if not status:
+            self.queueStatusLabel.setText("")
+            return
+        running_item_uid = status.get("running_item_uid", None)
+        queue_stop_pending = status.get("queue_stop_pending", False)
+        if queue_stop_pending and running_item_uid:
+            msg = "STOP PENDING"
+        elif running_item_uid:
+            msg = "RUNNING"
+        else:
+            msg = "STOPPED"
+        self.queueStatusLabel.setText(msg)
+
+    # ========================================
+    # Helper Methods
+    # ========================================
+
+    def _get_cached_state(self):
+        if not self.model:
+            return None, False, None
+        rem_api = self.model.getREManagerAPI()
+        isConnected = self.model.isConnected()
+        status = self.model.getStatus()
+        re_status = status.get("re_state", None) if status else None
+        return rem_api, isConnected, re_status
+
+    # ========================================
+    # Signal Handlers (Slots)
+    # ========================================
+
+    def onStatusChanged(self, is_connected, status):
         """Handle periodic status updates from model (every 2s)."""
         self._update_RE_status(status)
         self._update_REM_status(status)
+        self._update_Q_status(status)
 
     def onConnectionChanged(self, is_connected, control_addr, info_addr):
         """Handle connection changes from model signal."""

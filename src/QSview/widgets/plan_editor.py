@@ -28,7 +28,7 @@ class PlanEditorWidget(QtWidgets.QWidget):
         # TODO: Add connection-dependent updates here
         pass
 
-    def onStatusChanged(self, status):
+    def onStatusChanged(self, is_connected, status):
         """Handle periodic status updates from model (every 2s)."""
         # TODO: Add status-dependent updates here
         pass
