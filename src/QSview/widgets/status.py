@@ -26,9 +26,9 @@ class StatusWidget(QtWidgets.QWidget):
         self.mainwindow = parent
         self.model = model
 
-        self._update_RE_status(None)
-        self._update_REM_status(None)
-        self._update_Q_status(None)
+        self._update_RE_status(False, None)
+        self._update_REM_status(False, None)
+        self._update_Q_status(False, None)
         self._update_QS_status(False, "", "")
 
         self.setup()
@@ -308,7 +308,7 @@ class StatusWidget(QtWidgets.QWidget):
     # Status Update Methods
     # ========================================
 
-    def _update_REM_status(self, status):
+    def _update_REM_status(self, is_connected, status):
         """Update the status of the RE manager."""
         labels = [
             self.runengineLabel,
@@ -334,12 +334,21 @@ class StatusWidget(QtWidgets.QWidget):
         self.loopLabel.setText("ON" if plan_mode.get("loop") else "OFF")
         self.stopLabel.setText("YES" if status.get("queue_stop_pending") else "NO")
 
-    def _update_RE_status(self, status):
+    def _update_RE_status(self, is_connected, status):
         """Update UI based on connection state."""
         if not status:
             # Clear when no status
             self.RELEDLabel.setText("")
             return
+        worker_exists = status.get("worker_environment_exists", False)
+
+        # Enable buttons only when worker exists
+        self.rePauseButton_deferred.setEnabled(is_connected and worker_exists)
+        self.rePauseButton_immediate.setEnabled(is_connected and worker_exists)
+        self.reResumeButton.setEnabled(is_connected and worker_exists)
+        self.reHaltButton.setEnabled(is_connected and worker_exists)
+        self.reAbortButton.setEnabled(is_connected and worker_exists)
+        self.reStopButton.setEnabled(is_connected and worker_exists)
 
         RE_state = status.get("re_state", None)
         if RE_state is not None:
@@ -378,19 +387,28 @@ class StatusWidget(QtWidgets.QWidget):
                 )
             )
 
-    def _update_Q_status(self, status):
+    def _update_Q_status(self, is_connected, status):
         """Update UI based on the queue status"""
         if not status:
             self.queueStatusLabel.setText("")
             self.queueStopButton.setChecked(False)
             return
 
+        worker_exists = status.get("worker_environment_exists", False)
         running_item_uid = status.get("running_item_uid", None)
         queue_stop_pending = status.get("queue_stop_pending", False)
+        queue_autostart_enabled = status.get("queue_autostart_enabled", False)
 
-        # Update button to match server state
+        # Enable buttons only when worker exists
+        self.queuePlayButton.setEnabled(is_connected and worker_exists)
+        self.queueStopButton.setEnabled(is_connected and worker_exists)
+        self.autoStartCheckBox.setEnabled(is_connected and worker_exists)
+
+        # Update buttons to match server state
         self.queueStopButton.setChecked(queue_stop_pending)
+        self.autoStartCheckBox.setChecked(queue_autostart_enabled)
 
+        # Update queue status
         if queue_stop_pending and running_item_uid:
             msg = "STOP PENDING"
         elif running_item_uid:
@@ -419,9 +437,9 @@ class StatusWidget(QtWidgets.QWidget):
 
     def onStatusChanged(self, is_connected, status):
         """Handle periodic status updates from model (every 2s)."""
-        self._update_RE_status(status)
-        self._update_REM_status(status)
-        self._update_Q_status(status)
+        self._update_RE_status(is_connected, status)
+        self._update_REM_status(is_connected, status)
+        self._update_Q_status(is_connected, status)
 
     def onConnectionChanged(self, is_connected, control_addr, info_addr):
         """Handle connection changes from model signal."""
