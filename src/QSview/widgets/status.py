@@ -340,6 +340,7 @@ class StatusWidget(QtWidgets.QWidget):
             # Clear when no status
             self.RELEDLabel.setText("")
             return
+
         worker_exists = status.get("worker_environment_exists", False)
 
         # Enable buttons only when worker exists
