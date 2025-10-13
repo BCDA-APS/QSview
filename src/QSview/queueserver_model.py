@@ -61,7 +61,7 @@ class QueueServerModel(QtCore.QObject):
         # Timer for periodic status updates
         self._timer = QtCore.QTimer()
         self._timer.timeout.connect(self._update_status)
-        self._update_interval = 2000  # 2s
+        self._update_interval = 1000  # 1s
 
     def connectToServer(self, control_addr, info_addr):
         """
