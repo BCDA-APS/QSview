@@ -19,18 +19,23 @@ class StatusWidget(QtWidgets.QWidget):
 
     ui_file = utils.getUiFileName(__file__)
 
-    def __init__(self, parent=None, rem_api=None):
+    def __init__(self, parent=None, model=None):
         super().__init__(parent)
         utils.myLoadUi(self.ui_file, baseinstance=self)
-        self.rem_api = rem_api
-        print(f"Parent: {parent}")  # Debug
+
         self.mainwindow = parent
-        self._update_REM_status()
+        self.model = model
+
         self._update_RE_status()
+        self._update_REM_status()
+        self._update_QS_status(False, "", "")
         self.setup()
 
     def setup(self):
         """Setup connections and initialize status."""
+
+        # QS connection button
+        self.reconnectButton.clicked.connect(self.do_reconnect)
 
         # RE environment buttons
         self.runEngineOpenButton.clicked.connect(self.do_RE_open)
@@ -50,186 +55,259 @@ class StatusWidget(QtWidgets.QWidget):
         self.reAbortButton.clicked.connect(self.do_RE_abort)
         self.reStopButton.clicked.connect(self.do_RE_stop)
 
-        # Auto-update REM status every 2 seconds
-        self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self._update_RE_status)
-        self.timer.timeout.connect(self._update_REM_status)
-        self.timer.start(2000)  # 2 seconds
+    # QS connection method
+
+    def do_reconnect(self):
+        """Attempt to reconnect to the last successful server."""
+        if self.model:
+            self.model.attemptReconnect()
 
     # Queue control buttons
 
     def do_queue_start(self):
         """Start the queue."""
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
+            self.mainwindow.setMessage("Not connected to server")
+            return
         try:
-            success, msg = self.rem_api.queue_start()
+            success, msg = rem_api.queue_start()
             if not success:
-                self.mainwindow.setStatus(f"Error starting queue: {msg}")
+                self.mainwindow.setMessage(f"Error starting queue: {msg}")
             else:
-                self.mainwindow.setStatus("Queue started successfully")
+                self.mainwindow.setMessage("Queue started successfully")
         except Exception as e:
-            self.mainwindow.setStatus(f"Error starting queue: {e}")
+            self.mainwindow.setMessage(f"Error starting queue: {e}")
 
     def do_queue_stop(self):
         """Stop the queue."""
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
+            self.mainwindow.setMessage("Not connected to server")
+            return
         try:
-            success, msg = self.rem_api.queue_stop()
+            success, msg = rem_api.queue_stop()
             if not success:
-                self.mainwindow.setStatus(f"Error stopping queue: {msg}")
+                self.mainwindow.setMessage(f"Error stopping queue: {msg}")
             else:
-                self.mainwindow.setStatus("Queue stopped successfully")
+                self.mainwindow.setMessage("Queue stopped successfully")
         except Exception as e:
-            self.mainwindow.setStatus(f"Error stopping queue: {e}")
+            self.mainwindow.setMessage(f"Error stopping queue: {e}")
 
     def do_auto_start(self):
         """Set the auto-start state."""
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
+            self.mainwindow.setMessage("Not connected to server")
+            return
         try:
-            success, msg = self.rem_api.queue_autostart(
-                self.autoStartCheckBox.isChecked()
-            )
+            success, msg = rem_api.queue_autostart(self.autoStartCheckBox.isChecked())
             if not success:
-                self.mainwindow.setStatus(f"Error setting auto-start: {msg}")
+                self.mainwindow.setMessage(f"Error setting auto-start: {msg}")
             else:
-                self.mainwindow.setStatus("Auto-start set successfully")
+                self.mainwindow.setMessage("Auto-start set successfully")
         except Exception as e:
-            self.mainwindow.setStatus(f"Error setting auto-start: {e}")
+            self.mainwindow.setMessage(f"Error setting auto-start: {e}")
 
     # Run Engine control buttons
 
     def do_RE_open(self):
         """Open the Run Engine environment."""
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
+            self.mainwindow.setMessage("Not connected to server")
+            return
         try:
             if self.RE_state() is None:
-                self.mainwindow.setStatus("Opening Run Engine...")
-                success, msg = self.rem_api.environment_open()
+                self.mainwindow.setMessage("Opening Run Engine...")
+                success, msg = rem_api.environment_open()
                 if not success:
-                    self.mainwindow.setStatus(f"Error opening environment: {msg}")
+                    self.mainwindow.setMessage(f"Error opening environment: {msg}")
                 else:
-                    self.mainwindow.setStatus("Run Engine opened")
+                    self.mainwindow.setMessage("Run Engine opened")
             else:
-                self.mainwindow.setStatus("Environment already exists")
+                self.mainwindow.setMessage("Environment already exists")
         except Exception as e:
-            self.mainwindow.setStatus(f"Error opening environment: {e}")
+            self.mainwindow.setMessage(f"Error opening environment: {e}")
 
     def do_RE_close(self):
         """Close the Run Engine environment."""
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
+            self.mainwindow.setMessage("Not connected to server")
+            return
         try:
             if self.RE_state() is not None:
-                self.mainwindow.setStatus("Closing Run Engine...")
-                success, msg = self.rem_api.environment_close()
+                self.mainwindow.setMessage("Closing Run Engine...")
+                success, msg = rem_api.environment_close()
                 if not success:
-                    self.mainwindow.setStatus(f"Error closing environment: {msg}")
+                    self.mainwindow.setMessage(f"Error closing environment: {msg}")
                 else:
-                    self.mainwindow.setStatus("Run Engine closed")
+                    self.mainwindow.setMessage("Run Engine closed")
             else:
-                self.mainwindow.setStatus("Environment already closed")
+                self.mainwindow.setMessage("Environment already closed")
         except Exception as e:
-            self.mainwindow.setStatus(f"Error closing environment: {e}")
+            self.mainwindow.setMessage(f"Error closing environment: {e}")
 
     def do_RE_destroy(self):
         """Destroy the Run Engine environment."""
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
+            self.mainwindow.setMessage("Not connected to server")
+            return
         try:
             if self.RE_state() is not None:
-                self.mainwindow.setStatus("Destroying Run Engine...")
-                success, msg = self.rem_api.environment_destroy()
+                self.mainwindow.setMessage("Destroying Run Engine...")
+                success, msg = rem_api.environment_destroy()
                 if not success:
-                    self.mainwindow.setStatus(f"Error destroying environment: {msg}")
+                    self.mainwindow.setMessage(f"Error destroying environment: {msg}")
                 else:
-                    self.mainwindow.setStatus("Run Engine destroyed")
+                    self.mainwindow.setMessage("Run Engine destroyed")
             else:
-                self.mainwindow.setStatus("Environment already destroyed")
+                self.mainwindow.setMessage("Environment already destroyed")
         except Exception as e:
-            self.mainwindow.setStatus(f"Error destroying environment: {e}")
+            self.mainwindow.setMessage(f"Error destroying environment: {e}")
 
     def do_RE_pause_deferred(self):
         """Pause the Run Engine at the next checkpoint (deferred)."""
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
+            self.mainwindow.setMessage("Not connected to server")
+            return
         try:
-            success, msg = self.rem_api.re_pause("deferred")
+            success, msg = rem_api.re_pause("deferred")
             if not success:
-                self.mainwindow.setStatus(f"Error pausing Run Engine: {msg}")
+                self.mainwindow.setMessage(f"Error pausing Run Engine: {msg}")
             else:
-                self.mainwindow.setStatus(
+                self.mainwindow.setMessage(
                     "Run Engine will pause at the next checkpoint"
                 )
         except Exception as e:
-            self.mainwindow.setStatus(f"Error pausing Run Engine: {e}")
+            self.mainwindow.setMessage(f"Error pausing Run Engine: {e}")
 
     def do_RE_pause_immediate(self):
         """Pause the Run Engine immediately."""
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
+            self.mainwindow.setMessage("Not connected to server")
+            return
         try:
-            success, msg = self.rem_api.re_pause("immediate")
+            success, msg = rem_api.re_pause("immediate")
             if not success:
-                self.mainwindow.setStatus(f"Error pausing Run Engine: {msg}")
+                self.mainwindow.setMessage(f"Error pausing Run Engine: {msg}")
             else:
-                self.mainwindow.setStatus("Run Engine paused immediately")
+                self.mainwindow.setMessage("Run Engine paused immediately")
         except Exception as e:
-            self.mainwindow.setStatus(f"Error pausing Run Engine: {e}")
+            self.mainwindow.setMessage(f"Error pausing Run Engine: {e}")
 
     def do_RE_resume(self):
         """Resume the Run Engine."""
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
+            self.mainwindow.setMessage("Not connected to server")
+            return
         try:
-            success, msg = self.rem_api.re_resume()
+            success, msg = rem_api.re_resume()
             if not success:
-                self.mainwindow.setStatus(f"Error resuming Run Engine: {msg}")
+                self.mainwindow.setMessage(f"Error resuming Run Engine: {msg}")
             else:
-                self.mainwindow.setStatus("Run Engine resumed")
+                self.mainwindow.setMessage("Run Engine resumed")
         except Exception as e:
-            self.mainwindow.setStatus(f"Error resuming Run Engine: {e}")
+            self.mainwindow.setMessage(f"Error resuming Run Engine: {e}")
 
     def do_RE_halt(self):
         """Halt the Run Engine."""
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
+            self.mainwindow.setMessage("Not connected to server")
+            return
         try:
-            success, msg = self.rem_api.re_halt()
+            success, msg = rem_api.re_halt()
             if not success:
-                self.mainwindow.setStatus(f"Error halting Run Engine: {msg}")
+                self.mainwindow.setMessage(f"Error halting Run Engine: {msg}")
             else:
-                self.mainwindow.setStatus("Run Engine halted")
+                self.mainwindow.setMessage("Run Engine halted")
         except Exception as e:
-            self.mainwindow.setStatus(f"Error halting Run Engine: {e}")
+            self.mainwindow.setMessage(f"Error halting Run Engine: {e}")
 
     def do_RE_abort(self):
         """Abort the Run Engine."""
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
+            self.mainwindow.setMessage("Not connected to server")
+            return
         try:
-            success, msg = self.rem_api.re_abort()
+            success, msg = rem_api.re_abort()
             if not success:
-                self.mainwindow.setStatus(f"Error aborting Run Engine: {msg}")
+                self.mainwindow.setMessage(f"Error aborting Run Engine: {msg}")
             else:
-                self.mainwindow.setStatus("Run Engine aborted")
+                self.mainwindow.setMessage("Run Engine aborted")
         except Exception as e:
-            self.mainwindow.setStatus(f"Error aborting Run Engine: {e}")
+            self.mainwindow.setMessage(f"Error aborting Run Engine: {e}")
 
     def do_RE_stop(self):
         """Stop the Run Engine."""
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
+            self.mainwindow.setMessage("Not connected to server")
+            return
         try:
-            success, msg = self.rem_api.re_stop()
+            success, msg = rem_api.re_stop()
             if not success:
-                self.mainwindow.setStatus(f"Error stopping Run Engine: {msg}")
+                self.mainwindow.setMessage(f"Error stopping Run Engine: {msg}")
             else:
-                self.mainwindow.setStatus("Run Engine stopped")
+                self.mainwindow.setMessage("Run Engine stopped")
         except Exception as e:
-            self.mainwindow.setStatus(f"Error stopping Run Engine: {e}")
+            self.mainwindow.setMessage(f"Error stopping Run Engine: {e}")
 
-    # Run Engine Manager and Run Engine state
+    # Server, Run Engine Manager and Run Engine state
 
     def REM_state(self):
         """Get the current REM state."""
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
+            return None
         try:
-            return self.rem_api.status()
+            return rem_api.status()
         except Exception:
             return None
 
     def RE_state(self):
         """Get the current RE state."""
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
+            return None
         try:
-            return self.rem_api.status().get("re_state", None)
+            return rem_api.status().get("re_state", None)
         except Exception:
             return None
 
+    def _update_QS_status(self, is_connected, control_addr, info_addr):
+        """Update UI based on connection state."""
+
+        if is_connected and control_addr and info_addr:
+            self.serverAddrLabel.setText(f"Connected to: {control_addr} - {info_addr}")
+            pixmap = QtGui.QPixmap(ICON_GREEN_LED)
+            self.QSLEDLabel.setPixmap(
+                pixmap.scaled(
+                    20, 20, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation
+                )
+            )
+        else:
+            self.serverAddrLabel.setText("No Connection")
+            pixmap = QtGui.QPixmap(ICON_RED_LED)
+            self.QSLEDLabel.setPixmap(
+                pixmap.scaled(
+                    20, 20, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation
+                )
+            )
+
     def _update_RE_status(self):
         """Update UI based on connection state."""
-        if not self.rem_api:
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
             # Clear all labels when disconnected
             self.RELEDLabel.setText("")
-            self.REStatusLabel.setText("")
             return
 
         RE_state = self.RE_state()
@@ -259,8 +337,8 @@ class StatusWidget(QtWidgets.QWidget):
             self.loopLabel,
             self.stopLabel,
         ]
-
-        if not self.rem_api:
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
             # Clear all labels when disconnected
             for label in labels:
                 label.setText("")
@@ -277,3 +355,14 @@ class StatusWidget(QtWidgets.QWidget):
         plan_mode = REM_state.get("plan_queue_mode", {})
         self.loopLabel.setText("ON" if plan_mode.get("loop") else "OFF")
         self.stopLabel.setText("YES" if REM_state.get("queue_stop_pending") else "NO")
+
+    def onStatusChanged(self, status):
+        """Handle periodic status updates from model (every 2s)."""
+        self._update_RE_status()
+        self._update_REM_status()
+
+    def onConnectionChanged(self, is_connected, control_addr, info_addr):
+        """Handle connection changes from model signal."""
+        self._update_RE_status()
+        self._update_REM_status()
+        self._update_QS_status(is_connected, control_addr, info_addr)

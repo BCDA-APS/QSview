@@ -244,6 +244,50 @@ class ApplicationQSettings(QtCore.QSettings):
         if sizes is not None:
             splitter.setSizes(map(int, str(sizes).split()))
 
+    def getLastServerAddress(self):
+        """Get the last used server addresses."""
+        control_addr = self.getKey("servers/last_control_addr")
+        info_addr = self.getKey("servers/last_info_addr")
+        return control_addr, info_addr
+
+    def setLastServerAddress(self, control_addr, info_addr):
+        """Save the last used server addresses."""
+        self.setKey("servers/last_control_addr", control_addr)
+        self.setKey("servers/last_info_addr", info_addr)
+
+    def getRecentServers(self):
+        """Get list of recently used servers."""
+        recent = self.getKey("servers/recent_servers")
+        return recent.split("|") if recent else []
+
+    def addRecentServer(self, control_addr, info_addr):
+        """Add server to recent list (max 10 entries)."""
+        server_entry = f"{control_addr};{info_addr}"
+        recent = self.getRecentServers()
+
+        # Remove if already exists
+        if server_entry in recent:
+            recent.remove(server_entry)
+
+        # Add to front
+        recent.insert(0, server_entry)
+
+        # Limit to 10 entries
+        recent = recent[:10]
+
+        self.setKey("servers/recent_servers", "|".join(recent))
+
+    def clearRecentServers(self):
+        """Clear recent servers but keep the currently connected one."""
+        current_control, current_info = self.getLastServerAddress()
+
+        if current_control and current_info:
+            # Keep only the current server in recent list
+            self.setKey("servers/recent_servers", f"{current_control};{current_info}")
+        else:
+            # No current server to keep, clear everything
+            self.setKey("servers/recent_servers", "")
+
 
 # create _the_ singleton object
 settings = ApplicationQSettings(__settings_orgName__, __package_name__)

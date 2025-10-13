@@ -21,7 +21,7 @@ def gui():
 
     app = QtWidgets.QApplication(sys.argv)
     main_window = MainWindow()
-    main_window.setStatus("Application started ...")
+    main_window.setMessage("Application started ...")
     main_window.show()
     sys.exit(app.exec())
 
