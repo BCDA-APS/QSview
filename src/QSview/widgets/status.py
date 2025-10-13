@@ -45,8 +45,9 @@ class StatusWidget(QtWidgets.QWidget):
         self.runEngineDestroyButton.clicked.connect(self.do_RE_destroy)
 
         # Queue control buttons
+        self.queueStopButton.setCheckable(True)
         self.queuePlayButton.clicked.connect(self.do_queue_start)
-        self.queueStopButton.clicked.connect(self.do_queue_stop)
+        self.queueStopButton.clicked.connect(self.do_queue_stop_clicked)
         self.autoStartCheckBox.stateChanged.connect(self.do_auto_start)
 
         # Run Engine control buttons
@@ -99,6 +100,37 @@ class StatusWidget(QtWidgets.QWidget):
                 self.mainwindow.setMessage("Queue stopped successfully")
         except Exception as e:
             self.mainwindow.setMessage(f"Error stopping queue: {e}")
+
+    def do_queue_stop_cancel(self):
+        """Cancel pending request to stop the queue."""
+        rem_api = self.model.getREManagerAPI() if self.model else None
+        if not rem_api:
+            self.mainwindow.setMessage("Not connected to server")
+            return
+        try:
+            success, msg = rem_api.queue_stop_cancel()
+            if not success:
+                self.mainwindow.setMessage(
+                    f"Error cancelling pending request to stop the queue: {msg}"
+                )
+            else:
+                self.mainwindow.setMessage(
+                    "Successfully cancel the pending request to stop execution of the queue"
+                )
+        except Exception as e:
+            self.mainwindow.setMessage(
+                f"Error cancelling pending request to stop the queue: {e}"
+            )
+
+    def do_queue_stop_clicked(self):
+        """Handle stop button click: stop queue if unchecked, cancel if checked."""
+        try:
+            if self.queueStopButton.isChecked():
+                self.do_queue_stop()
+            else:
+                self.do_queue_stop_cancel()
+        except Exception as ex:
+            print(f"Exception: {ex}")
 
     def do_auto_start(self):
         """Set the auto-start state."""
@@ -347,11 +379,18 @@ class StatusWidget(QtWidgets.QWidget):
             )
 
     def _update_Q_status(self, status):
+        """Update UI based on the queue status"""
         if not status:
             self.queueStatusLabel.setText("")
+            self.queueStopButton.setChecked(False)
             return
+
         running_item_uid = status.get("running_item_uid", None)
         queue_stop_pending = status.get("queue_stop_pending", False)
+
+        # Update button to match server state
+        self.queueStopButton.setChecked(queue_stop_pending)
+
         if queue_stop_pending and running_item_uid:
             msg = "STOP PENDING"
         elif running_item_uid:
@@ -365,6 +404,7 @@ class StatusWidget(QtWidgets.QWidget):
     # ========================================
 
     def _get_cached_state(self):
+        """Return (rem_api, is_connected, re_state) from model's cached status."""
         if not self.model:
             return None, False, None
         rem_api = self.model.getREManagerAPI()
