@@ -153,8 +153,8 @@ class StatusWidget(QtWidgets.QWidget):
 
     def do_RE_open(self):
         """Open the Run Engine environment."""
-        rem_api, isConnected, re_status = self._get_cached_state()
-        if not isConnected:
+        rem_api, is_connected, re_status = self._get_cached_state()
+        if not is_connected:
             self.mainwindow.setMessage("Not connected to server")
             return
         try:
@@ -172,8 +172,8 @@ class StatusWidget(QtWidgets.QWidget):
 
     def do_RE_close(self):
         """Close the Run Engine environment."""
-        rem_api, isConnected, re_status = self._get_cached_state()
-        if not isConnected:
+        rem_api, is_connected, re_status = self._get_cached_state()
+        if not is_connected:
             self.mainwindow.setMessage("Not connected to server")
             return
         try:
@@ -191,8 +191,8 @@ class StatusWidget(QtWidgets.QWidget):
 
     def do_RE_destroy(self):
         """Destroy the Run Engine environment."""
-        rem_api, isConnected, re_status = self._get_cached_state()
-        if not isConnected:
+        rem_api, is_connected, re_status = self._get_cached_state()
+        if not is_connected:
             self.mainwindow.setMessage("Not connected to server")
             return
         try:
@@ -214,8 +214,8 @@ class StatusWidget(QtWidgets.QWidget):
 
     def do_RE_pause_deferred(self):
         """Pause the Run Engine at the next checkpoint (deferred)."""
-        rem_api, isConnected, re_status = self._get_cached_state()
-        if not isConnected:
+        rem_api, is_connected, re_status = self._get_cached_state()
+        if not is_connected:
             self.mainwindow.setMessage("Not connected to server")
             return
         try:
@@ -231,8 +231,8 @@ class StatusWidget(QtWidgets.QWidget):
 
     def do_RE_pause_immediate(self):
         """Pause the Run Engine immediately."""
-        rem_api, isConnected, re_status = self._get_cached_state()
-        if not isConnected:
+        rem_api, is_connected, re_status = self._get_cached_state()
+        if not is_connected:
             self.mainwindow.setMessage("Not connected to server")
             return
         try:
@@ -246,8 +246,8 @@ class StatusWidget(QtWidgets.QWidget):
 
     def do_RE_resume(self):
         """Resume the Run Engine."""
-        rem_api, isConnected, re_status = self._get_cached_state()
-        if not isConnected:
+        rem_api, is_connected, re_status = self._get_cached_state()
+        if not is_connected:
             self.mainwindow.setMessage("Not connected to server")
             return
         try:
@@ -261,8 +261,8 @@ class StatusWidget(QtWidgets.QWidget):
 
     def do_RE_halt(self):
         """Halt the Run Engine."""
-        rem_api, isConnected, re_status = self._get_cached_state()
-        if not isConnected:
+        rem_api, is_connected, re_status = self._get_cached_state()
+        if not is_connected:
             self.mainwindow.setMessage("Not connected to server")
             return
         try:
@@ -276,8 +276,8 @@ class StatusWidget(QtWidgets.QWidget):
 
     def do_RE_abort(self):
         """Abort the Run Engine."""
-        rem_api, isConnected, re_status = self._get_cached_state()
-        if not isConnected:
+        rem_api, is_connected, re_status = self._get_cached_state()
+        if not is_connected:
             self.mainwindow.setMessage("Not connected to server")
             return
         try:
@@ -291,8 +291,8 @@ class StatusWidget(QtWidgets.QWidget):
 
     def do_RE_stop(self):
         """Stop the Run Engine."""
-        rem_api, isConnected, re_status = self._get_cached_state()
-        if not isConnected:
+        rem_api, is_connected, re_status = self._get_cached_state()
+        if not is_connected:
             self.mainwindow.setMessage("Not connected to server")
             return
         try:
@@ -427,10 +427,10 @@ class StatusWidget(QtWidgets.QWidget):
         if not self.model:
             return None, False, None
         rem_api = self.model.getREManagerAPI()
-        isConnected = self.model.isConnected()
+        is_connected = self.model.is_connected()
         status = self.model.getStatus()
         re_status = status.get("re_state", None) if status else None
-        return rem_api, isConnected, re_status
+        return rem_api, is_connected, re_status
 
     # ========================================
     # Signal Handlers (Slots)
