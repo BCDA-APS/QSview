@@ -427,7 +427,7 @@ class StatusWidget(QtWidgets.QWidget):
         if not self.model:
             return None, False, None
         rem_api = self.model.getREManagerAPI()
-        is_connected = self.model.is_connected()
+        is_connected = self.model.isConnected()
         status = self.model.getStatus()
         re_status = status.get("re_state", None) if status else None
         return rem_api, is_connected, re_status
