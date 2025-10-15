@@ -140,7 +140,7 @@ class ConsoleWidget(QtWidgets.QWidget):
         else:
             self._stop_console_monitoring()
 
-    def onStatusChanged(self, status):
+    def onStatusChanged(self, is_connected, status):
         """Handle periodic status updates from model (every 2s)."""
         # TODO: Add status-dependent updates here
         pass

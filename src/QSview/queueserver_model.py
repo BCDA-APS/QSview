@@ -24,7 +24,7 @@ class QueueServerModel(QtCore.QObject):
     Signals:
         connectionChanged(bool, str, str): Emitted when connection state changes.
             Args: (is_connected, control_addr, info_addr)
-        statusChanged(dict): Emitted when server status is updated.
+        statusChanged(is_connected, dict): Emitted when server status is updated.
             Args: (status_dict)
         queueChanged(dict): Emitted when queue items change.
             Args: (queue_dict)
@@ -34,7 +34,7 @@ class QueueServerModel(QtCore.QObject):
 
     # Signals
     connectionChanged = QtCore.pyqtSignal(bool, str, str)
-    statusChanged = QtCore.pyqtSignal(object)
+    statusChanged = QtCore.pyqtSignal(bool, object)
     queueChanged = QtCore.pyqtSignal(object)
     historyChanged = QtCore.pyqtSignal(object)
     messageChanged = QtCore.pyqtSignal(str)
@@ -61,7 +61,7 @@ class QueueServerModel(QtCore.QObject):
         # Timer for periodic status updates
         self._timer = QtCore.QTimer()
         self._timer.timeout.connect(self._update_status)
-        self._update_interval = 2000  # 2s
+        self._update_interval = 1000  # 1s
 
         # Console monitoring
         self._stop_console_monitor = False
@@ -108,7 +108,7 @@ class QueueServerModel(QtCore.QObject):
             self.connectionChanged.emit(True, control_addr, info_addr)
 
             # Emit initial status
-            self.statusChanged.emit(self._status)
+            self.statusChanged.emit(True, self._status)
 
             return (True, None)
 
@@ -120,6 +120,7 @@ class QueueServerModel(QtCore.QObject):
             self._info_addr = ""
             # Emit disconnection connection state changed
             self.connectionChanged.emit(False, "", "")
+            self.statusChanged.emit(False, {})
             return (False, str(e))
 
     def disconnectFromServer(self):
@@ -146,6 +147,7 @@ class QueueServerModel(QtCore.QObject):
 
         # Emit disconnection
         self.connectionChanged.emit(False, self._control_addr, self._info_addr)
+        self.statusChanged.emit(False, {})
 
     def attemptReconnect(self):
         """Attempt to reconnect to the last successful server."""
@@ -188,7 +190,7 @@ class QueueServerModel(QtCore.QObject):
             self._status = self._rem_api.status()
 
             # Emit signal - TODO: should we check for changes to emit or always emit?
-            self.statusChanged.emit(self._status)
+            self.statusChanged.emit(self._is_connected, self._status)
 
         except Exception as e:
             # Connection lost
