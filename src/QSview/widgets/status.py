@@ -313,10 +313,10 @@ class StatusWidget(QtWidgets.QWidget):
         labels = [
             self.runengineLabel,
             self.managerLabel,
-            self.queueLabel,
-            self.historyLabel,
-            self.loopLabel,
-            self.stopLabel,
+            # self.queueLabel,
+            # self.historyLabel,
+            # self.loopLabel,
+            # self.stopLabel,
         ]
         if not status:
             # Clear when no status
@@ -326,13 +326,15 @@ class StatusWidget(QtWidgets.QWidget):
 
         # Format and set labels
         self.managerLabel.setText(str(status.get("manager_state", "NONE")).upper())
-        self.queueLabel.setText(str(status.get("items_in_queue", 0)))
-        self.historyLabel.setText(str(status.get("items_in_history", 0)))
+
+        # TODO: move those to Running Plan panel
+        # self.queueLabel.setText(str(status.get("items_in_queue", 0)))
+        # self.historyLabel.setText(str(status.get("items_in_history", 0)))
 
         # Handle plan mode (dictionary)
-        plan_mode = status.get("plan_queue_mode", {})
-        self.loopLabel.setText("ON" if plan_mode.get("loop") else "OFF")
-        self.stopLabel.setText("YES" if status.get("queue_stop_pending") else "NO")
+        # plan_mode = status.get("plan_queue_mode", {})
+        # self.loopLabel.setText("ON" if plan_mode.get("loop") else "OFF")
+        # self.stopLabel.setText("YES" if status.get("queue_stop_pending") else "NO")
 
     def _update_RE_status(self, is_connected, status):
         """Update UI based on connection state."""
@@ -372,7 +374,7 @@ class StatusWidget(QtWidgets.QWidget):
         """Update UI based on connection state."""
 
         if is_connected and control_addr and info_addr:
-            self.serverAddrLabel.setText(f"Connected to: {control_addr} - {info_addr}")
+            self.serverAddrLabel.setText(f"{control_addr}")
             pixmap = QtGui.QPixmap(ICON_GREEN_LED)
             self.QSLEDLabel.setPixmap(
                 pixmap.scaled(
