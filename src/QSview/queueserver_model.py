@@ -63,6 +63,13 @@ class QueueServerModel(QtCore.QObject):
         self._timer.timeout.connect(self._update_status)
         self._update_interval = 1000  # 1s
 
+        # Console monitoring
+        self._stop_console_monitor = False
+
+    #################################################
+    #           Connection methods                  #
+    #################################################
+
     def connectToServer(self, control_addr, info_addr):
         """
         Connect to the Queue Server.
@@ -229,3 +236,40 @@ class QueueServerModel(QtCore.QObject):
     def refreshStatus(self):
         """Force an immediate status update (outside of timer)."""
         self._update_status()
+
+    #################################################
+    #              Console methods                  #
+    #################################################
+
+    def start_console_output_monitoring(self):
+        """Enable console output monitoring."""
+        self._stop_console_monitor = False
+        if self._rem_api:
+            self._rem_api.console_monitor.enable()
+
+    def stop_console_output_monitoring(self):
+        """Disable console output monitoring."""
+        self._stop_console_monitor = True
+        if self._rem_api:
+            self._rem_api.console_monitor.disable()
+
+    def console_monitoring_thread(self):
+        """
+        Get the next console message from the server.
+        This method is designed to be called repeatedly in a background thread.
+
+        Returns:
+            tuple: (time, msg) if message received, (None, "") if timeout
+        """
+        if not self._rem_api or self._stop_console_monitor:
+            return None, ""
+
+        try:
+            # Wait up to 0.2 seconds for a message
+            payload = self._rem_api.console_monitor.next_msg(timeout=0.2)
+            time = payload.get("time", None)
+            msg = payload.get("msg", "")
+            return time, msg
+        except Exception:
+            # Timeout or other error - just return empty
+            return None, ""
