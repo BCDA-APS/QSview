@@ -448,7 +448,7 @@ class StatusWidget(QtWidgets.QWidget):
     # ========================================
 
     def onStatusChanged(self, is_connected, status):
-        """Handle periodic status updates from model (every 2s)."""
+        """Handle periodic status updates from model (every 1s)."""
         self._update_RE_status(is_connected, status)
         self._update_REM_status(is_connected, status)
         self._update_Q_status(is_connected, status)

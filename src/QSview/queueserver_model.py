@@ -189,7 +189,7 @@ class QueueServerModel(QtCore.QObject):
         """
         Periodic status update (called by timer).
 
-        This method is called every 2 seconds to update the server status.
+        This method is called every 1 seconds to update the server status.
         If the connection fails, it will automatically disconnect.
         """
         if not self._rem_api or not self._is_connected:
