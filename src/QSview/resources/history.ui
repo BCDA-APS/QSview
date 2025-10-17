@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>650</width>
-    <height>225</height>
+    <height>197</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -57,20 +57,6 @@
         </size>
        </property>
       </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="deselectAllButton">
-       <property name="toolTip">
-        <string>Deselect all</string>
-       </property>
-       <property name="text">
-        <string>Deselect All</string>
-       </property>
-       <property name="icon">
-        <iconset>
-         <normaloff>icons/deselect.png</normaloff>icons/deselect.png</iconset>
-       </property>
-      </widget>
      </item>
      <item>
       <spacer name="horizontalSpacer_4">

@@ -7,6 +7,7 @@ from .console import ConsoleWidget
 from .history import HistoryWidget
 from .plan_editor import PlanEditorWidget
 from .queue_editor import QueueEditorWidget
+from .running_plan import RunningPlanWidget
 from .status import StatusWidget
 
 __all__ = [
@@ -15,4 +16,5 @@ __all__ = [
     "QueueEditorWidget",
     "HistoryWidget",
     "ConsoleWidget",
+    "RunningPlanWidget",
 ]

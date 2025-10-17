@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>665</width>
-    <height>177</height>
+    <height>149</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -191,50 +191,6 @@
       <property name="bottomMargin">
        <number>0</number>
       </property>
-      <item>
-       <widget class="QPushButton" name="moveTopButton">
-        <property name="text">
-         <string>Top</string>
-        </property>
-        <property name="icon">
-         <iconset>
-          <normaloff>icons/top.png</normaloff>icons/top.png</iconset>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="moveUpButton">
-        <property name="text">
-         <string>Up</string>
-        </property>
-        <property name="icon">
-         <iconset>
-          <normaloff>icons/up.png</normaloff>icons/up.png</iconset>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="moveDownButton">
-        <property name="text">
-         <string>Down</string>
-        </property>
-        <property name="icon">
-         <iconset>
-          <normaloff>icons/down.png</normaloff>icons/down.png</iconset>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="moveBottomButton">
-        <property name="text">
-         <string>Bottom</string>
-        </property>
-        <property name="icon">
-         <iconset>
-          <normaloff>icons/bottom.png</normaloff>icons/bottom.png</iconset>
-        </property>
-       </widget>
-      </item>
      </layout>
     </widget>
    </item>
