@@ -18,6 +18,7 @@ from .widgets import (
     HistoryWidget,
     PlanEditorWidget,
     QueueEditorWidget,
+    RunningPlanWidget,
     StatusWidget,
 )
 
@@ -59,6 +60,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self._setup_widget(QueueEditorWidget, "groupBox_queue", "queue_editor_widget")
         self._setup_widget(HistoryWidget, "groupBox_history", "history_widget")
         self._setup_widget(ConsoleWidget, "groupBox_console", "console_widget")
+        self._setup_widget(RunningPlanWidget, "groupBox_plan", "running_plan_widget")
 
         # Initialize connection to Queue Server
         self.initializeConnection()
