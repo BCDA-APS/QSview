@@ -58,6 +58,15 @@ class StatusWidget(QtWidgets.QWidget):
         self.reAbortButton.clicked.connect(self.do_RE_abort)
         self.reStopButton.clicked.connect(self.do_RE_stop)
 
+        # Advanced control
+        self.advancedCheckBox.setChecked(False)
+        self.advancedCheckBox.stateChanged.connect(self.do_advanced_mode)
+        self.rePauseButton_immediate.setVisible(False)
+        self.reStopButton.setVisible(False)
+        self.reHaltButton.setVisible(False)
+        self.runEngineDestroyButton.setVisible(False)
+        self.runEngineUpdateButton.setVisible(False)
+
     # ========================================
     # Connection Control
     # ========================================
@@ -449,3 +458,16 @@ class StatusWidget(QtWidgets.QWidget):
         self._update_QS_status(
             is_connected, control_addr, info_addr
         )  # no need to change status since onStatusChanged fires right after onConnectionChanged
+
+    # ========================================
+    # Advanced mode
+    # ========================================
+
+    def do_advanced_mode(self):
+        """Toggle visibility of advanced buttons."""
+        is_advanced = self.advancedCheckBox.isChecked()
+        self.rePauseButton_immediate.setVisible(is_advanced)
+        self.reStopButton.setVisible(is_advanced)
+        self.reHaltButton.setVisible(is_advanced)
+        self.runEngineDestroyButton.setVisible(is_advanced)
+        self.runEngineUpdateButton.setVisible(is_advanced)

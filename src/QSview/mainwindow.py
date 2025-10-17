@@ -16,7 +16,6 @@ from .user_settings import settings
 from .widgets import (
     ConsoleWidget,
     HistoryWidget,
-    PlanEditorWidget,
     QueueEditorWidget,
     RunningPlanWidget,
     StatusWidget,
