@@ -56,7 +56,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Create widgets with connection
         self._setup_widget(StatusWidget, "groupBox_status", "status_widget")
-        self._setup_widget(PlanEditorWidget, "groupBox_editor", "plan_editor_widget")
+        # self._setup_widget(PlanEditorWidget, "groupBox_editor", "plan_editor_widget")
         self._setup_widget(QueueEditorWidget, "groupBox_queue", "queue_editor_widget")
         self._setup_widget(HistoryWidget, "groupBox_history", "history_widget")
         self._setup_widget(ConsoleWidget, "groupBox_console", "console_widget")

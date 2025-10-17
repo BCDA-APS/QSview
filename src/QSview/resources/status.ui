@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1104</width>
-    <height>138</height>
+    <width>1136</width>
+    <height>134</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -533,6 +533,16 @@
           <widget class="QPushButton" name="reHaltButton">
            <property name="text">
             <string>Halt</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="advancedCheckBox">
+           <property name="toolTip">
+            <string>Enable/disable advanced mode</string>
+           </property>
+           <property name="text">
+            <string/>
            </property>
           </widget>
          </item>
