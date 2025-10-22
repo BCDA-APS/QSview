@@ -67,6 +67,19 @@ class QueueServerModel(QtCore.QObject):
         self._stop_console_monitor = False
 
     # ========================================
+    # RE Manager Methods
+    # ========================================
+
+    def getREManagerAPI(self):
+        """
+        Get the underlying REManagerAPI object.
+
+        Returns:
+            REManagerAPI or None: The API object if connected, None otherwise
+        """
+        return self._rem_api if self._is_connected else None
+
+    # ========================================
     # Connection Methods
     # ========================================
 
@@ -184,6 +197,15 @@ class QueueServerModel(QtCore.QObject):
         """
         return self._is_connected
 
+    def getConnectionInfo(self):
+        """
+        Get current connection information.
+
+        Returns:
+            tuple: (control_addr, info_addr)
+        """
+        return (self._control_addr, self._info_addr)
+
     # ========================================
     # Update Status
     # ========================================
@@ -210,28 +232,6 @@ class QueueServerModel(QtCore.QObject):
             self.messageChanged.emit(f"Connection lost: {e}")
             self.disconnectFromServer()
 
-    # ========================================
-    # Getter Methods
-    # ========================================
-
-    def getConnectionInfo(self):
-        """
-        Get current connection information.
-
-        Returns:
-            tuple: (control_addr, info_addr)
-        """
-        return (self._control_addr, self._info_addr)
-
-    def getREManagerAPI(self):
-        """
-        Get the underlying REManagerAPI object.
-
-        Returns:
-            REManagerAPI or None: The API object if connected, None otherwise
-        """
-        return self._rem_api if self._is_connected else None
-
     def getStatus(self):
         """
         Get the cached server status.
@@ -240,6 +240,56 @@ class QueueServerModel(QtCore.QObject):
             dict: The most recent status dictionary
         """
         return self._status.copy()
+
+    # ========================================
+    # History Methods
+    # ========================================
+
+    def fetchHistory(self):
+        """Fetch history from server and update cache."""
+        if not self._rem_api or not self._is_connected:
+            return []
+        try:
+            response = self._rem_api.history_get()
+            if response.get("success", False):
+                # Store in cache
+                self._history = response.get("items", [])
+                # Emit signal for UI updates
+                self.historyChanged.emit(self._history)
+                return self._history
+            else:
+                # Handle API error
+                error_msg = response.get("msg", "Unknown error")
+                self.messageChanged.emit(f"Failed to get history: {error_msg}")
+                return []
+        except Exception as e:
+            # Handle connection/API errors
+            self.messageChanged.emit(f"Error getting history: {e}")
+            return []
+
+    def clearHistory(self):
+        """Clear the queue history on the server."""
+        if not self._rem_api or not self._is_connected:
+            self.messageChanged.emit("Not connected to server")
+            return False
+
+        try:
+            # Clear entire history (size=0 clears everything)
+            success, msg = self._rem_api.history_clear(size=0)
+            if success:
+                self._history = []
+                self.historyChanged.emit([])
+                self.messageChanged.emit("History cleared successfully")
+            else:
+                self.messageChanged.emit(f"Failed to clear history: {msg}")
+            return success
+        except Exception as e:
+            self.messageChanged.emit(f"Error clearing history: {e}")
+            return False
+
+    def getHistory(self):
+        """Get the cached history data."""
+        return self._history.copy()
 
     # ========================================
     # Running Plan Methods
