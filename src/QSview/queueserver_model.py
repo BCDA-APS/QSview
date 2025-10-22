@@ -123,6 +123,9 @@ class QueueServerModel(QtCore.QObject):
             # Emit initial status
             self.statusChanged.emit(True, self._status)
 
+            # Fetch history on connection
+            self.fetchHistory()
+
             return (True, None)
 
         except Exception as e:
@@ -275,7 +278,7 @@ class QueueServerModel(QtCore.QObject):
 
         try:
             # Clear entire history (size=0 clears everything)
-            success, msg = self._rem_api.history_clear(size=0)
+            success, msg = self._rem_api.history_clear()
             if success:
                 self._history = []
                 self.historyChanged.emit([])
