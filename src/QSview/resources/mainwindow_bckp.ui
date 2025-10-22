@@ -67,6 +67,25 @@
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
              </property>
+             <widget class="QGroupBox" name="groupBox_editor">
+              <property name="title">
+               <string>Plan Editor</string>
+              </property>
+              <layout class="QHBoxLayout" name="horizontalLayout_5">
+               <property name="leftMargin">
+                <number>5</number>
+               </property>
+               <property name="topMargin">
+                <number>5</number>
+               </property>
+               <property name="rightMargin">
+                <number>5</number>
+               </property>
+               <property name="bottomMargin">
+                <number>5</number>
+               </property>
+              </layout>
+             </widget>
              <widget class="QGroupBox" name="groupBox_queue">
               <property name="title">
                <string>Queue</string>

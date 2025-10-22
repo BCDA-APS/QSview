@@ -60,15 +60,15 @@ class QueueServerModel(QtCore.QObject):
 
         # Timer for periodic status updates
         self._timer = QtCore.QTimer()
-        self._timer.timeout.connect(self._update_status)
+        self._timer.timeout.connect(self.fetchStatus)
         self._update_interval = 1000  # 1s
 
         # Console monitoring
         self._stop_console_monitor = False
 
-    #################################################
-    #           Connection methods                  #
-    #################################################
+    # ========================================
+    # Connection Methods
+    # ========================================
 
     def connectToServer(self, control_addr, info_addr):
         """
@@ -128,7 +128,7 @@ class QueueServerModel(QtCore.QObject):
         Disconnect from the Queue Server.
 
         This is called internally when:
-        - Connection is lost (detected in _update_status)
+        - Connection is lost (detected in fetchStatus)
         - User connects to a different server
         - Application is shutting down
         """
@@ -175,11 +175,24 @@ class QueueServerModel(QtCore.QObject):
         if not success:
             self.messageChanged.emit(f"Reconnection failed: {msg}")
 
-    def _update_status(self):
+    def isConnected(self):
+        """
+        Check if currently connected to a server.
+
+        Returns:
+            bool: True if connected, False otherwise
+        """
+        return self._is_connected
+
+    # ========================================
+    # Update Status
+    # ========================================
+
+    def fetchStatus(self):
         """
         Periodic status update (called by timer).
 
-        This method is called every 2 seconds to update the server status.
+        This method is called every 1 seconds to update the server status.
         If the connection fails, it will automatically disconnect.
         """
         if not self._rem_api or not self._is_connected:
@@ -197,14 +210,9 @@ class QueueServerModel(QtCore.QObject):
             self.messageChanged.emit(f"Connection lost: {e}")
             self.disconnectFromServer()
 
-    def isConnected(self):
-        """
-        Check if currently connected to a server.
-
-        Returns:
-            bool: True if connected, False otherwise
-        """
-        return self._is_connected
+    # ========================================
+    # Getter Methods
+    # ========================================
 
     def getConnectionInfo(self):
         """
@@ -233,13 +241,49 @@ class QueueServerModel(QtCore.QObject):
         """
         return self._status.copy()
 
-    def refreshStatus(self):
-        """Force an immediate status update (outside of timer)."""
-        self._update_status()
+    # ========================================
+    # Running Plan Methods
+    # ========================================
 
-    #################################################
-    #              Console methods                  #
-    #################################################
+    def getRunningItem(self):
+        """
+        Get information about the currently running plan.
+
+        Returns:
+            dict: Running item information, empty dict if no plan is running
+        """
+        if not self._rem_api or not self._is_connected:
+            return {}
+
+        try:
+            response = self._rem_api.queue_get()
+            if response.get("success", False):
+                return response.get("running_item", {})
+            return {}
+        except Exception:
+            return {}
+
+    def getRunList(self):
+        """
+        Get the list of runs associated with the currently running plan.
+
+        Returns:
+            list: List of run information dictionaries
+        """
+        if not self._rem_api or not self._is_connected:
+            return []
+
+        try:
+            response = self._rem_api.re_runs()
+            if response.get("success", False):
+                return response.get("run_list", [])
+            return []
+        except Exception:
+            return []
+
+    # ========================================
+    # Console Methods
+    # ========================================
 
     def start_console_output_monitoring(self):
         """Enable console output monitoring."""
