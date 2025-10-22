@@ -60,18 +60,15 @@ class QueueServerModel(QtCore.QObject):
 
         # Timer for periodic status updates
         self._timer = QtCore.QTimer()
-        self._timer.timeout.connect(self._update_status)
+        self._timer.timeout.connect(self.fetchStatus)
         self._update_interval = 1000  # 1s
+
+        # Console monitoring
+        self._stop_console_monitor = False
 
     # ========================================
     # Connection Methods
     # ========================================
-        # Console monitoring
-        self._stop_console_monitor = False
-
-    #################################################
-    #           Connection methods                  #
-    #################################################
 
     def connectToServer(self, control_addr, info_addr):
         """
@@ -131,7 +128,7 @@ class QueueServerModel(QtCore.QObject):
         Disconnect from the Queue Server.
 
         This is called internally when:
-        - Connection is lost (detected in _update_status)
+        - Connection is lost (detected in fetchStatus)
         - User connects to a different server
         - Application is shutting down
         """
@@ -191,7 +188,7 @@ class QueueServerModel(QtCore.QObject):
     # Update Status
     # ========================================
 
-    def _update_status(self):
+    def fetchStatus(self):
         """
         Periodic status update (called by timer).
 
@@ -212,10 +209,6 @@ class QueueServerModel(QtCore.QObject):
             # Connection lost
             self.messageChanged.emit(f"Connection lost: {e}")
             self.disconnectFromServer()
-
-    def refreshStatus(self):
-        """Force an immediate status update (outside of timer)."""
-        self._update_status()
 
     # ========================================
     # Getter Methods
@@ -287,13 +280,10 @@ class QueueServerModel(QtCore.QObject):
             return []
         except Exception:
             return []
-    def refreshStatus(self):
-        """Force an immediate status update (outside of timer)."""
-        self._update_status()
 
-    #################################################
-    #              Console methods                  #
-    #################################################
+    # ========================================
+    # Console Methods
+    # ========================================
 
     def start_console_output_monitoring(self):
         """Enable console output monitoring."""

@@ -17,6 +17,11 @@ class RunningPlanWidget(QtWidgets.QWidget):
         utils.myLoadUi(self.ui_file, baseinstance=self)
         self.model = model
 
+    def onConnectionChanged(self, is_connected, control_addr, info_addr):
+        """Handle connection changes from QueueServerModel signal."""
+        # TODO: Add connection-dependent updates here
+        pass
+
     def onStatusChanged(self, is_connected, status):
         """Handle periodic status updates from model (every 1s)."""
         if not is_connected:
