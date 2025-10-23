@@ -35,9 +35,10 @@ class QueueServerModel(QtCore.QObject):
     # Signals
     connectionChanged = QtCore.pyqtSignal(bool, str, str)
     statusChanged = QtCore.pyqtSignal(bool, object)
+    messageChanged = QtCore.pyqtSignal(str)
     queueChanged = QtCore.pyqtSignal(object)
     historyChanged = QtCore.pyqtSignal(object)
-    messageChanged = QtCore.pyqtSignal(str)
+    historyNeedsUpdate = QtCore.pyqtSignal()
 
     def __init__(self):
         super().__init__()
@@ -57,11 +58,12 @@ class QueueServerModel(QtCore.QObject):
         self._status = {}
         self._queue = {}
         self._history = {}
+        self._history_uid = ""
 
         # Timer for periodic status updates
         self._timer = QtCore.QTimer()
         self._timer.timeout.connect(self.fetchStatus)
-        self._update_interval = 1000  # 1s
+        self._update_interval = 500  # 0.5s
 
         # Console monitoring
         self._stop_console_monitor = False
@@ -122,9 +124,6 @@ class QueueServerModel(QtCore.QObject):
 
             # Emit initial status
             self.statusChanged.emit(True, self._status)
-
-            # Fetch history on connection
-            self.fetchHistory()
 
             return (True, None)
 
@@ -226,6 +225,12 @@ class QueueServerModel(QtCore.QObject):
         try:
             # Get current status
             self._status = self._rem_api.status()
+
+            # Check if history UID has changed
+            new_history_uid = self._status.get("plan_history_uid", "")
+            if new_history_uid != self._history_uid:
+                self._history_uid = new_history_uid
+                self.historyNeedsUpdate.emit()
 
             # Emit signal - TODO: should we check for changes to emit or always emit?
             self.statusChanged.emit(self._is_connected, self._status)

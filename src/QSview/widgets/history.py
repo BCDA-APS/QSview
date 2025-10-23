@@ -27,6 +27,7 @@ class HistoryWidget(QtWidgets.QWidget):
 
         # Connect to model signals
         self.model.historyChanged.connect(self.table_model.update_data)
+        self.model.historyNeedsUpdate.connect(self._on_history_needs_update)
 
         # Connect UI signals
         self.clearHistoryButton.clicked.connect(self._on_clear_clicked)
@@ -36,6 +37,10 @@ class HistoryWidget(QtWidgets.QWidget):
         if self.model:
             self.model.clearHistory()
 
+    def _on_history_needs_update(self):
+        """Handle history update signal."""
+        self.model.fetchHistory()
+
     def _resize_table(self):
         """Resize table after data is loaded."""
         self.tableView.resizeColumnsToContents()
@@ -43,10 +48,12 @@ class HistoryWidget(QtWidgets.QWidget):
 
     def onConnectionChanged(self, is_connected, control_addr, info_addr):
         """Handle connection changes from QueueServerModel signal."""
-        # TODO: Add connection-dependent updates here
-        pass
+        if is_connected:
+            # Fetch history when connected
+            self.model.fetchHistory()
 
     def onStatusChanged(self, is_connected, status):
-        """Handle periodic status updates from model (every 2s)."""
-        # TODO: Add status-dependent updates here
-        pass
+        """Handle periodic status updates from model (every 0.5s)."""
+        if status:
+            history_count = status.get("items_in_history", 0)
+            self.itemsHistoryLabel.setText(str(history_count))
