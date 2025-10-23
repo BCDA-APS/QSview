@@ -6,6 +6,7 @@ from PyQt5 import QtWidgets
 
 from .. import utils
 from .history_model import HistoryTableModel
+from .history_model_dynamic import DynamicHistoryTableModel
 
 
 class HistoryWidget(QtWidgets.QWidget):
@@ -22,20 +23,43 @@ class HistoryWidget(QtWidgets.QWidget):
     def setup(self):
         """Connect signals and slots."""
         # Create table model
-        self.table_model = HistoryTableModel(table_view=self.tableView)
-        self.tableView.setModel(self.table_model)
+        self.static_model = HistoryTableModel(table_view=self.tableView)
+        self.dynamic_model = DynamicHistoryTableModel(table_view=self.tableView)
+
+        # Start with static model
+        self.current_model = self.static_model
+        self.tableView.setModel(self.current_model)
+        self.toggleViewButton.setChecked(False)
+        self.toggleViewButton.setText("Dynamic View")
 
         # Connect to model signals
-        self.model.historyChanged.connect(self.table_model.update_data)
+        self.model.historyChanged.connect(self.static_model.update_data)
+        self.model.historyChanged.connect(self.dynamic_model.update_data)
         self.model.historyNeedsUpdate.connect(self._on_history_needs_update)
 
         # Connect UI signals
         self.clearHistoryButton.clicked.connect(self._on_clear_clicked)
         self.copyHistoryButton.clicked.connect(self._on_copy_to_queue_clicked)
+        self.toggleViewButton.clicked.connect(self._on_toggle_view)
 
     def _on_history_needs_update(self):
         """Handle history update signal."""
         self.model.fetchHistory()
+
+    def _on_toggle_view(self):
+        """Toggle between static and dynamic view."""
+        if self.toggleViewButton.isChecked():
+            # Switch to dynamic
+            self.current_model = self.dynamic_model
+            self.toggleViewButton.setText("Static View")
+        else:
+            # Switch to static
+            self.current_model = self.static_model
+            self.toggleViewButton.setText("Dynamic View")
+
+        # Update the table view
+        self.tableView.setModel(self.current_model)
+        self._resize_table()
 
     def _on_copy_to_queue_clicked(self):
         """Copy the selected item to the queue"""
