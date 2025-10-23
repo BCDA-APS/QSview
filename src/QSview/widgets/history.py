@@ -31,15 +31,46 @@ class HistoryWidget(QtWidgets.QWidget):
 
         # Connect UI signals
         self.clearHistoryButton.clicked.connect(self._on_clear_clicked)
+        self.copyHistoryButton.clicked.connect(self._on_copy_to_queue_clicked)
+
+    def _on_history_needs_update(self):
+        """Handle history update signal."""
+        self.model.fetchHistory()
+
+    def _on_copy_to_queue_clicked(self):
+        """Copy the selected item to the queue"""
+        if not self.model:
+            return
+
+        # get selected rows
+        selection = self.tableView.selectionModel()
+        selected_rows = selection.selectedRows()
+
+        if not selected_rows:
+            # No selection - show message
+            self.model.messageChanged.emit(
+                "Please select an history item to copy to queue"
+            )
+
+        # Get the history data for selected rows
+        history_data = self.model.getHistory()
+        selected_items = []
+
+        for row in selected_rows:
+            row_index = row.row()
+            if row_index < len(history_data):
+                # Extract the item from history data
+                history_item = history_data[row_index]
+                selected_items.append(history_item)
+
+        # Add items directly to queue
+        if selected_items:
+            self.model.add_items_to_queue(selected_items)
 
     def _on_clear_clicked(self):
         """Clear the history on the server."""
         if self.model:
             self.model.clearHistory()
-
-    def _on_history_needs_update(self):
-        """Handle history update signal."""
-        self.model.fetchHistory()
 
     def _resize_table(self):
         """Resize table after data is loaded."""

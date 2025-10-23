@@ -60,6 +60,10 @@ class QueueServerModel(QtCore.QObject):
         self._history = {}
         self._history_uid = ""
 
+        # User info
+        self._user_name = "GUI Client"
+        self._user_group = "primary"
+
         # Timer for periodic status updates
         self._timer = QtCore.QTimer()
         self._timer.timeout.connect(self.fetchStatus)
@@ -248,6 +252,45 @@ class QueueServerModel(QtCore.QObject):
             dict: The most recent status dictionary
         """
         return self._status.copy()
+
+    # ========================================
+    # Queue Methods
+    # ========================================
+
+    def add_items_to_queue(self, items):
+        """Add multiple items to the queue."""
+        if not self._rem_api or not self._is_connected:
+            self.messageChanged.emit("Not connected to server")
+            return
+
+        try:
+            # Add user info to each item
+            request_params = {
+                "items": items,
+                "user": self._user_name,
+                "user_group": self._user_group,
+            }
+
+            # Add items to the back of the queue
+            response = self._rem_api.item_add_batch(**request_params)
+            if response.get("success", False):
+                self._refresh_queue()
+                self.messageChanged.emit(f"Added {len(items)} item(s) to queue")
+            else:
+                error_msg = response.get("msg", "Unknown error")
+                self.messageChanged.emit(f"Failed to add items to queue: {error_msg}")
+        except Exception as e:
+            self.messageChanged.emit(f"Error adding items to queue: {e}")
+
+    def _refresh_queue(self):
+        """Refresh queue data from server."""
+        try:
+            response = self._rem_api.queue_get()
+            if response.get("success", False):
+                self._queue = response.get("items", [])
+                self.queueChanged.emit(self._queue)
+        except Exception as e:
+            self.messageChanged.emit(f"Error refreshing queue: {e}")
 
     # ========================================
     # History Methods
