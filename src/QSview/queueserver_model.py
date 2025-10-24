@@ -325,7 +325,7 @@ class QueueServerModel(QtCore.QObject):
             return False
 
         try:
-            # Clear entire history (size=0 clears everything)
+            # Clear entire history
             success, msg = self._rem_api.history_clear()
             if success:
                 self._history = []
