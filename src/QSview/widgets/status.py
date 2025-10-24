@@ -323,9 +323,7 @@ class StatusWidget(QtWidgets.QWidget):
             self.runengineLabel,
             self.managerLabel,
             # self.queueLabel,
-            # self.historyLabel,
             # self.loopLabel,
-            # self.stopLabel,
         ]
         if not status:
             # Clear when no status
@@ -336,14 +334,12 @@ class StatusWidget(QtWidgets.QWidget):
         # Format and set labels
         self.managerLabel.setText(str(status.get("manager_state", "NONE")).upper())
 
-        # TODO: move those to Running Plan panel
+        # TODO: move those to their respective panels
         # self.queueLabel.setText(str(status.get("items_in_queue", 0)))
-        # self.historyLabel.setText(str(status.get("items_in_history", 0)))
 
         # Handle plan mode (dictionary)
         # plan_mode = status.get("plan_queue_mode", {})
         # self.loopLabel.setText("ON" if plan_mode.get("loop") else "OFF")
-        # self.stopLabel.setText("YES" if status.get("queue_stop_pending") else "NO")
 
     def _update_RE_status(self, is_connected, status):
         """Update UI based on connection state."""
@@ -448,7 +444,7 @@ class StatusWidget(QtWidgets.QWidget):
     # ========================================
 
     def onStatusChanged(self, is_connected, status):
-        """Handle periodic status updates from model (every 1s)."""
+        """Handle periodic status updates from model (every 0.5s)."""
         self._update_RE_status(is_connected, status)
         self._update_REM_status(is_connected, status)
         self._update_Q_status(is_connected, status)

@@ -35,9 +35,10 @@ class QueueServerModel(QtCore.QObject):
     # Signals
     connectionChanged = QtCore.pyqtSignal(bool, str, str)
     statusChanged = QtCore.pyqtSignal(bool, object)
+    messageChanged = QtCore.pyqtSignal(str)
     queueChanged = QtCore.pyqtSignal(object)
     historyChanged = QtCore.pyqtSignal(object)
-    messageChanged = QtCore.pyqtSignal(str)
+    historyNeedsUpdate = QtCore.pyqtSignal()
 
     def __init__(self):
         super().__init__()
@@ -57,14 +58,32 @@ class QueueServerModel(QtCore.QObject):
         self._status = {}
         self._queue = {}
         self._history = {}
+        self._history_uid = ""
+
+        # User info
+        self._user_name = "GUI Client"
+        self._user_group = "primary"
 
         # Timer for periodic status updates
         self._timer = QtCore.QTimer()
         self._timer.timeout.connect(self.fetchStatus)
-        self._update_interval = 1000  # 1s
+        self._update_interval = 500  # 0.5s
 
         # Console monitoring
         self._stop_console_monitor = False
+
+    # ========================================
+    # RE Manager Methods
+    # ========================================
+
+    def getREManagerAPI(self):
+        """
+        Get the underlying REManagerAPI object.
+
+        Returns:
+            REManagerAPI or None: The API object if connected, None otherwise
+        """
+        return self._rem_api if self._is_connected else None
 
     # ========================================
     # Connection Methods
@@ -184,6 +203,15 @@ class QueueServerModel(QtCore.QObject):
         """
         return self._is_connected
 
+    def getConnectionInfo(self):
+        """
+        Get current connection information.
+
+        Returns:
+            tuple: (control_addr, info_addr)
+        """
+        return (self._control_addr, self._info_addr)
+
     # ========================================
     # Update Status
     # ========================================
@@ -202,6 +230,12 @@ class QueueServerModel(QtCore.QObject):
             # Get current status
             self._status = self._rem_api.status()
 
+            # Check if history UID has changed
+            new_history_uid = self._status.get("plan_history_uid", "")
+            if new_history_uid != self._history_uid:
+                self._history_uid = new_history_uid
+                self.historyNeedsUpdate.emit()
+
             # Emit signal - TODO: should we check for changes to emit or always emit?
             self.statusChanged.emit(self._is_connected, self._status)
 
@@ -209,28 +243,6 @@ class QueueServerModel(QtCore.QObject):
             # Connection lost
             self.messageChanged.emit(f"Connection lost: {e}")
             self.disconnectFromServer()
-
-    # ========================================
-    # Getter Methods
-    # ========================================
-
-    def getConnectionInfo(self):
-        """
-        Get current connection information.
-
-        Returns:
-            tuple: (control_addr, info_addr)
-        """
-        return (self._control_addr, self._info_addr)
-
-    def getREManagerAPI(self):
-        """
-        Get the underlying REManagerAPI object.
-
-        Returns:
-            REManagerAPI or None: The API object if connected, None otherwise
-        """
-        return self._rem_api if self._is_connected else None
 
     def getStatus(self):
         """
@@ -240,6 +252,95 @@ class QueueServerModel(QtCore.QObject):
             dict: The most recent status dictionary
         """
         return self._status.copy()
+
+    # ========================================
+    # Queue Methods
+    # ========================================
+
+    def add_items_to_queue(self, items):
+        """Add multiple items to the queue."""
+        if not self._rem_api or not self._is_connected:
+            self.messageChanged.emit("Not connected to server")
+            return
+
+        try:
+            # Add user info to each item
+            request_params = {
+                "items": items,
+                "user": self._user_name,
+                "user_group": self._user_group,
+            }
+
+            # Add items to the back of the queue
+            response = self._rem_api.item_add_batch(**request_params)
+            if response.get("success", False):
+                self._refresh_queue()
+                self.messageChanged.emit(f"Added {len(items)} item(s) to queue")
+            else:
+                error_msg = response.get("msg", "Unknown error")
+                self.messageChanged.emit(f"Failed to add items to queue: {error_msg}")
+        except Exception as e:
+            self.messageChanged.emit(f"Error adding items to queue: {e}")
+
+    def _refresh_queue(self):
+        """Refresh queue data from server."""
+        try:
+            response = self._rem_api.queue_get()
+            if response.get("success", False):
+                self._queue = response.get("items", [])
+                self.queueChanged.emit(self._queue)
+        except Exception as e:
+            self.messageChanged.emit(f"Error refreshing queue: {e}")
+
+    # ========================================
+    # History Methods
+    # ========================================
+
+    def fetchHistory(self):
+        """Fetch history from server and update cache."""
+        if not self._rem_api or not self._is_connected:
+            return []
+        try:
+            response = self._rem_api.history_get()
+            if response.get("success", False):
+                # Store in cache
+                self._history = response.get("items", [])
+                # Emit signal for UI updates
+                self.historyChanged.emit(self._history)
+                return self._history
+            else:
+                # Handle API error
+                error_msg = response.get("msg", "Unknown error")
+                self.messageChanged.emit(f"Failed to get history: {error_msg}")
+                return []
+        except Exception as e:
+            # Handle connection/API errors
+            self.messageChanged.emit(f"Error getting history: {e}")
+            return []
+
+    def clearHistory(self):
+        """Clear the queue history on the server."""
+        if not self._rem_api or not self._is_connected:
+            self.messageChanged.emit("Not connected to server")
+            return False
+
+        try:
+            # Clear entire history
+            success, msg = self._rem_api.history_clear()
+            if success:
+                self._history = []
+                self.historyChanged.emit([])
+                self.messageChanged.emit("History cleared successfully")
+            else:
+                self.messageChanged.emit(f"Failed to clear history: {msg}")
+            return success
+        except Exception as e:
+            self.messageChanged.emit(f"Error clearing history: {e}")
+            return False
+
+    def getHistory(self):
+        """Get the cached history data."""
+        return self._history.copy()
 
     # ========================================
     # Running Plan Methods

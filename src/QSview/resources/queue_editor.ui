@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>665</width>
-    <height>149</height>
+    <width>784</width>
+    <height>251</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -47,6 +47,49 @@
      </item>
      <item>
       <spacer name="horizontalSpacer_1">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Items in queue:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_3">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Fixed</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>10</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QLabel" name="itemsQueueLabel">
+       <property name="text">
+        <string>0</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_4">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -171,7 +214,34 @@
        <number>0</number>
       </property>
       <item>
-       <widget class="QTableView" name="tableView"/>
+       <widget class="QTableView" name="tableView">
+        <property name="styleSheet">
+         <string notr="true">QTableView {
+    gridline-color: #d0d0d0;
+    background-color: white;
+}
+QTableView::item {
+    padding: 5px;
+    border: 1px solid lightgray;
+}
+QTableView::item:alternate {
+    background-color: #f8f8f8;
+}
+QHeaderView::section {
+    padding: 5px;
+    background-color: #f0f0f0;
+    border: 1px solid #d0d0d0;
+}
+QTableView::item:selected {
+    background-color: #2196F3;
+    color: white;
+}
+QTableView::item:alternate:selected {
+    background-color: #2196F3;
+    color: white;
+}</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
