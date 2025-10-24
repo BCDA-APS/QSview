@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>875</width>
-    <height>782</height>
+    <height>754</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -68,6 +68,18 @@
               <enum>Qt::Horizontal</enum>
              </property>
              <widget class="QGroupBox" name="groupBox_queue">
+              <property name="styleSheet">
+               <string notr="true">QGroupBox {
+    font-size: 16px;
+    color: #333333;
+    margin-top: 10px;
+}
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 10px;
+    padding: 0 5px 0 5px;
+}</string>
+              </property>
               <property name="title">
                <string>Queue</string>
               </property>
@@ -98,6 +110,18 @@
               <enum>Qt::Horizontal</enum>
              </property>
              <widget class="QGroupBox" name="groupBox_plan">
+              <property name="styleSheet">
+               <string notr="true">QGroupBox {
+    font-size: 16px;
+    color: #333333;
+    margin-top: 10px;
+}
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 10px;
+    padding: 0 5px 0 5px;
+}</string>
+              </property>
               <property name="title">
                <string>Running Plan</string>
               </property>
@@ -117,6 +141,18 @@
               </layout>
              </widget>
              <widget class="QGroupBox" name="groupBox_history">
+              <property name="styleSheet">
+               <string notr="true">QGroupBox {
+    font-size: 16px;
+    color: #333333;
+    margin-top: 10px;
+}
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 10px;
+    padding: 0 5px 0 5px;
+}</string>
+              </property>
               <property name="title">
                <string>History</string>
               </property>
@@ -140,6 +176,18 @@
           </layout>
          </widget>
          <widget class="QGroupBox" name="groupBox_console">
+          <property name="styleSheet">
+           <string notr="true">QGroupBox {
+    font-size: 16px;
+    color: #333333;
+    margin-top: 10px;
+}
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 10px;
+    padding: 0 5px 0 5px;
+}</string>
+          </property>
           <property name="title">
            <string>Console</string>
           </property>
@@ -171,7 +219,7 @@
      <x>0</x>
      <y>0</y>
      <width>875</width>
-     <height>38</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
