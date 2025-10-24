@@ -30,7 +30,7 @@ class HistoryWidget(QtWidgets.QWidget):
         self.current_model = self.static_model
         self.tableView.setModel(self.current_model)
         self.toggleViewButton.setChecked(False)
-        self.toggleViewButton.setText("Dynamic View")
+        self.toggleViewButton.setText("Detailed View")
 
         # Connect to model signals
         self.model.historyChanged.connect(self.static_model.update_data)
@@ -51,11 +51,11 @@ class HistoryWidget(QtWidgets.QWidget):
         if self.toggleViewButton.isChecked():
             # Switch to dynamic
             self.current_model = self.dynamic_model
-            self.toggleViewButton.setText("Static View")
+            self.toggleViewButton.setText("Summary View")
         else:
             # Switch to static
             self.current_model = self.static_model
-            self.toggleViewButton.setText("Dynamic View")
+            self.toggleViewButton.setText("Detailed View")
 
         # Update the table view
         self.tableView.setModel(self.current_model)
@@ -93,8 +93,17 @@ class HistoryWidget(QtWidgets.QWidget):
 
     def _on_clear_clicked(self):
         """Clear the history on the server."""
-        if self.model:
-            self.model.clearHistory()
+        reply = QtWidgets.QMessageBox.question(
+            self,
+            "Clear History",
+            "Are you sure you want to clear the history?",
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+            QtWidgets.QMessageBox.No,
+        )
+        if reply == QtWidgets.QMessageBox.Yes:
+            if self.model:
+                self.model.clearHistory()
+            self.setMessage("History cleared")
 
     def _resize_table(self):
         """Resize table after data is loaded."""
