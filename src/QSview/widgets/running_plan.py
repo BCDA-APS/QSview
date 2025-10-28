@@ -23,7 +23,7 @@ class RunningPlanWidget(QtWidgets.QWidget):
         pass
 
     def onStatusChanged(self, is_connected, status):
-        """Handle periodic status updates from model (every 1s)."""
+        """Handle periodic status updates from model (every 0.5s)."""
         if not is_connected:
             # Clear display when disconnected
             self.planTextEdit.setHtml(
