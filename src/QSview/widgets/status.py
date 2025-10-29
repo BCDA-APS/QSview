@@ -322,7 +322,6 @@ class StatusWidget(QtWidgets.QWidget):
         labels = [
             self.runengineLabel,
             self.managerLabel,
-            # self.queueLabel,
             # self.loopLabel,
         ]
         if not status:
@@ -333,10 +332,6 @@ class StatusWidget(QtWidgets.QWidget):
 
         # Format and set labels
         self.managerLabel.setText(str(status.get("manager_state", "NONE")).upper())
-
-        # TODO: move those to their respective panels
-        # self.queueLabel.setText(str(status.get("items_in_queue", 0)))
-
         # Handle plan mode (dictionary)
         # plan_mode = status.get("plan_queue_mode", {})
         # self.loopLabel.setText("ON" if plan_mode.get("loop") else "OFF")
