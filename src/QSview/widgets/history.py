@@ -27,10 +27,10 @@ class HistoryWidget(QtWidgets.QWidget):
         self.dynamic_model = DynamicHistoryTableModel(table_view=self.tableView)
 
         # Start with static model
-        self.current_model = self.static_model
+        self.current_model = self.dynamic_model
         self.tableView.setModel(self.current_model)
-        self.toggleViewButton.setChecked(False)
-        self.toggleViewButton.setText("Detailed View")
+        self.viewCheckBox.setChecked(True)
+        self.viewCheckBox.setText("Detailed View")
 
         # Connect to model signals
         self.model.historyChanged.connect(self.static_model.update_data)
@@ -40,7 +40,7 @@ class HistoryWidget(QtWidgets.QWidget):
         # Connect UI signals
         self.clearHistoryButton.clicked.connect(self._on_clear_clicked)
         self.copyHistoryButton.clicked.connect(self._on_copy_to_queue_clicked)
-        self.toggleViewButton.clicked.connect(self._on_toggle_view)
+        self.viewCheckBox.stateChanged.connect(self._on_toggle_view)
 
     def _on_history_needs_update(self):
         """Handle history update signal."""
@@ -48,14 +48,14 @@ class HistoryWidget(QtWidgets.QWidget):
 
     def _on_toggle_view(self):
         """Toggle between static and dynamic view."""
-        if self.toggleViewButton.isChecked():
+        if self.viewCheckBox.isChecked():
             # Switch to dynamic
             self.current_model = self.dynamic_model
-            self.toggleViewButton.setText("Summary View")
+            self.viewCheckBox.setText("Summary View")
         else:
             # Switch to static
             self.current_model = self.static_model
-            self.toggleViewButton.setText("Detailed View")
+            self.viewCheckBox.setText("Detailed View")
 
         # Update the table view
         self.tableView.setModel(self.current_model)
@@ -103,7 +103,7 @@ class HistoryWidget(QtWidgets.QWidget):
         if reply == QtWidgets.QMessageBox.Yes:
             if self.model:
                 self.model.clearHistory()
-            self.setMessage("History cleared")
+            self.model.messageChanged.emit("Queue cleared")
 
     def _resize_table(self):
         """Resize table after data is loaded."""

@@ -62,6 +62,17 @@ class HistoryTableModel(QtGui.QStandardItemModel):
             return ""
 
         lines = []
-        for key, value in kwargs.items():
-            lines.append(f"{key} = {value}")
+        # Format detectors if present
+        if "detectors" in kwargs:
+            lines.append(f"detectors = {kwargs['detectors']}")
+
+        # Collect all other kwargs (not detectors or md) as args
+        other_kwargs = {k: v for k, v in kwargs.items() if k not in ["detectors", "md"]}
+        if other_kwargs:
+            lines.append(f"args = {other_kwargs}")
+
+        # Format md if present
+        if "md" in kwargs:
+            lines.append(f"md = {kwargs['md']}")
+
         return "\n".join(lines)
