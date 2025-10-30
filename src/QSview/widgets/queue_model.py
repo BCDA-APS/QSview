@@ -3,6 +3,7 @@ Queue Table Model - displays queue items in a table format.
 """
 
 from PyQt5 import QtGui
+from ..utils import format_kwargs_three_lines
 
 
 class QueueTableModel(QtGui.QStandardItemModel):
@@ -55,22 +56,4 @@ class QueueTableModel(QtGui.QStandardItemModel):
 
     def format_arguments(self, kwargs):
         """Format arguments for display."""
-        if not kwargs:
-            return ""
-
-        lines = []
-
-        # Format detectors if present
-        if "detectors" in kwargs:
-            lines.append(f"detectors = {kwargs['detectors']}")
-
-        # Collect all other kwargs (not detectors or md) as args
-        other_kwargs = {k: v for k, v in kwargs.items() if k not in ["detectors", "md"]}
-        if other_kwargs:
-            lines.append(f"args = {other_kwargs}")
-
-        # Format md if present
-        if "md" in kwargs:
-            lines.append(f"md = {kwargs['md']}")
-
-        return "\n".join(lines)
+        return format_kwargs_three_lines(kwargs)
