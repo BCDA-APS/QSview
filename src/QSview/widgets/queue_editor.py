@@ -31,12 +31,6 @@ class QueueEditorWidget(QtWidgets.QWidget):
         self.current_model = self.dynamic_model
         self.tableView.setModel(self.current_model)
 
-        # # Cap column size
-        # MAX = utils.MAX_LENGTH_COLUMN_QUEUE
-        # header = self.tableView.horizontalHeader()
-        # header.setSectionResizeMode(QHeaderView.Interactive)  # allow user drag-resize
-        # header.setMaximumSectionSize(MAX)
-
         # Checkbox toggle view
         self.viewCheckBox.setChecked(True)
         self.viewCheckBox.setText("Detailed View")
@@ -49,6 +43,7 @@ class QueueEditorWidget(QtWidgets.QWidget):
 
         # Connect UI signals
         self.clearButton.clicked.connect(self._on_clear_clicked)
+        self.duplicateButton.clicked.connect(self._on_copy_to_queue_clicked)
         self.viewCheckBox.stateChanged.connect(self._on_toggle_view)
 
     def _on_queue_needs_update(self):
@@ -72,6 +67,35 @@ class QueueEditorWidget(QtWidgets.QWidget):
         # Update the table view
         self.tableView.setModel(self.current_model)
         self._resize_table()
+
+    def _on_copy_to_queue_clicked(self):
+        """Copy the selected plan to the queue"""
+        if not self.model:
+            return
+
+        # get selected rows
+        selection = self.tableView.selectionModel()
+        selected_rows = selection.selectedRows()
+
+        if not selected_rows:
+            # No selection - show message
+            self.model.messageChanged.emit("Please select a plan to duplicate")
+            return
+
+        # Get the plan data for selected rows
+        queue_data = self.model.getQueue()
+        selected_items = []
+
+        for row in selected_rows:
+            row_index = row.row()
+            if row_index < len(queue_data):
+                # Extract the item from queue data
+                queue_item = queue_data[row_index]
+                selected_items.append(queue_item)
+
+        # Add items directly to queue
+        if selected_items:
+            self.model.add_items_to_queue(selected_items)
 
     def _on_clear_clicked(self):
         """Clear the queue on the server."""

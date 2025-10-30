@@ -11,7 +11,6 @@ Support functions for this demo project.
 
 import pathlib
 
-
 MAX_LENGTH_COLUMN_QUEUE_STATIC = 750
 MAX_LENGTH_COLUMN_QUEUE_DYNAMIC = 250
 MAX_LENGTH_COLUMN_HISTORY_STATIC = 500
@@ -71,10 +70,25 @@ def debug_signal(*args, **kwargs):
 
 
 def truncate_preview(text: str, max_length: int) -> str:
+    """Return text truncated to max_length, appending an ellipsis when clipped.
+
+    Args:
+        text: Source string to preview.
+        max_length: Maximum allowed visible characters for the preview.
+
+    Returns:
+        The original text if within the limit; otherwise a truncated string
+        ending with an ellipsis character.
+    """
     return text[:max_length] + "…" if len(text) > max_length else text
 
 
 def format_kwargs_three_lines(kwargs: dict) -> str:
+    """Format selected kwargs across up to three labeled lines.
+
+    The function emits up to three lines in this order: detectors, other
+    keyword arguments grouped as "args", and metadata under "md".
+    """
     lines = []
     if not kwargs:
         return ""
