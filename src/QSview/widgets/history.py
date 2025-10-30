@@ -3,6 +3,7 @@ History Widget - for viewing and managing history.
 """
 
 from PyQt5 import QtWidgets
+from PyQt5.QtCore import QTimer
 
 from .. import utils
 from .history_model import HistoryTableModel
@@ -35,6 +36,7 @@ class HistoryWidget(QtWidgets.QWidget):
         # Connect to model signals
         self.model.historyChanged.connect(self.static_model.update_data)
         self.model.historyChanged.connect(self.dynamic_model.update_data)
+        self.model.historyChanged.connect(self._schedule_resize)
         self.model.historyNeedsUpdate.connect(self._on_history_needs_update)
 
         # Connect UI signals
@@ -46,16 +48,19 @@ class HistoryWidget(QtWidgets.QWidget):
         """Handle history update signal."""
         self.model.fetchHistory()
 
+    def _schedule_resize(self, *_):
+        QTimer.singleShot(0, self._resize_table)
+
     def _on_toggle_view(self):
         """Toggle between static and dynamic view."""
         if self.viewCheckBox.isChecked():
             # Switch to dynamic
             self.current_model = self.dynamic_model
-            self.viewCheckBox.setText("Summary View")
+            self.viewCheckBox.setText("Detailed View")
         else:
             # Switch to static
             self.current_model = self.static_model
-            self.viewCheckBox.setText("Detailed View")
+            self.viewCheckBox.setText("Summary View")
 
         # Update the table view
         self.tableView.setModel(self.current_model)
@@ -106,15 +111,19 @@ class HistoryWidget(QtWidgets.QWidget):
             self.model.messageChanged.emit("Queue cleared")
 
     def _resize_table(self):
-        """Resize table after data is loaded."""
-        self.tableView.resizeColumnsToContents()
-        self.tableView.resizeRowsToContents()
+        max_length = (
+            utils.MAX_LENGTH_COLUMN_HISTORY_STATIC
+            if self.current_model == self.static_model
+            else utils.MAX_LENGTH_COLUMN_HISTORY_DYNAMIC
+        )
+        utils.resize_table_with_caps(self.tableView, max_length)
 
     def onConnectionChanged(self, is_connected, control_addr, info_addr):
         """Handle connection changes from QueueServerModel signal."""
         if is_connected:
             # Fetch history when connected
             self.model.fetchHistory()
+            QTimer.singleShot(0, self._resize_table)
 
     def onStatusChanged(self, is_connected, status):
         """Handle periodic status updates from model (every 0.5s)."""

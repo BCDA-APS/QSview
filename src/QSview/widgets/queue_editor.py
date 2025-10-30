@@ -3,6 +3,7 @@ Queue Editor Widget - for editing and managing the queue.
 """
 
 from PyQt5 import QtWidgets
+from PyQt5.QtCore import QTimer
 
 from .. import utils
 from .queue_model import QueueTableModel
@@ -29,12 +30,21 @@ class QueueEditorWidget(QtWidgets.QWidget):
         # Start with static model
         self.current_model = self.dynamic_model
         self.tableView.setModel(self.current_model)
+
+        # # Cap column size
+        # MAX = utils.MAX_LENGTH_COLUMN_QUEUE
+        # header = self.tableView.horizontalHeader()
+        # header.setSectionResizeMode(QHeaderView.Interactive)  # allow user drag-resize
+        # header.setMaximumSectionSize(MAX)
+
+        # Checkbox toggle view
         self.viewCheckBox.setChecked(True)
         self.viewCheckBox.setText("Detailed View")
 
         # Connect to model signals
         self.model.queueChanged.connect(self.static_model.update_data)
         self.model.queueChanged.connect(self.dynamic_model.update_data)
+        self.model.queueChanged.connect(self._schedule_resize)
         self.model.queueNeedsUpdate.connect(self._on_queue_needs_update)
 
         # Connect UI signals
@@ -44,6 +54,9 @@ class QueueEditorWidget(QtWidgets.QWidget):
     def _on_queue_needs_update(self):
         """Handle queue update signal."""
         self.model.fetchQueue()
+
+    def _schedule_resize(self, *_):
+        QTimer.singleShot(0, self._resize_table)
 
     def _on_toggle_view(self):
         """Toggle between static and dynamic view."""
@@ -75,15 +88,19 @@ class QueueEditorWidget(QtWidgets.QWidget):
             self.model.messageChanged.emit("Queue cleared")
 
     def _resize_table(self):
-        """Resize table after data is loaded."""
-        self.tableView.resizeColumnsToContents()
-        self.tableView.resizeRowsToContents()
+        max_length = (
+            utils.MAX_LENGTH_COLUMN_QUEUE_STATIC
+            if self.current_model == self.static_model
+            else utils.MAX_LENGTH_COLUMN_QUEUE_DYNAMIC
+        )
+        utils.resize_table_with_caps(self.tableView, max_length)
 
     def onConnectionChanged(self, is_connected, control_addr, info_addr):
         """Handle connection changes from QueueServerModel signal."""
         if is_connected:
             # Fetch queue when connected
             self.model.fetchQueue()
+            QTimer.singleShot(0, self._resize_table)
 
     def onStatusChanged(self, is_connected, status):
         """Handle periodic status updates from model (every 0.5s)."""
