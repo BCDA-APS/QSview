@@ -80,6 +80,7 @@ class HistoryWidget(QtWidgets.QWidget):
             self.model.messageChanged.emit(
                 "Please select an history item to copy to queue"
             )
+            return
 
         # Get the history data for selected rows
         history_data = self.model.getHistory()

@@ -3,6 +3,7 @@ Queue Table Model - displays queue items in a table format.
 """
 
 from PyQt5 import QtGui
+
 from ..utils import format_kwargs_three_lines
 
 
