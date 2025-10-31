@@ -17,7 +17,7 @@ class QueueTableModel(QtGui.QStandardItemModel):
 
     def setup_headers(self):
         """Set up table column headers."""
-        headers = ["Name", "Arguments", "User"]
+        headers = ["Name", "Arguments", "User", "Edit", "Delete"]
         self.setHorizontalHeaderLabels(headers)
 
     def update_data(self, queue_data):
