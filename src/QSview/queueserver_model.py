@@ -224,7 +224,7 @@ class QueueServerModel(QtCore.QObject):
         """
         Periodic status update (called by timer).
 
-        This method is called every 1 seconds to update the server status.
+        This method is called every 0.5 seconds to update the server status.
         If the connection fails, it will automatically disconnect.
         """
         if not self._rem_api or not self._is_connected:
@@ -246,7 +246,7 @@ class QueueServerModel(QtCore.QObject):
                 self._queue_uid = new_queue_uid
                 self.queueNeedsUpdate.emit()
 
-            # Emit signal - TODO: should we check for changes to emit or always emit?
+            # Emit signal
             self.statusChanged.emit(self._is_connected, self._status)
 
         except Exception as e:
@@ -291,6 +291,24 @@ class QueueServerModel(QtCore.QObject):
                 self.messageChanged.emit(f"Failed to add items to queue: {error_msg}")
         except Exception as e:
             self.messageChanged.emit(f"Error adding items to queue: {e}")
+
+    def delete_items_from_queue(self, uids):
+        """Delete multiple items from the queue."""
+        if not self._rem_api or not self._is_connected:
+            self.messageChanged.emit("Not connected to server")
+            return
+        try:
+            response = self._rem_api.item_remove_batch(uids, ignore_missing=True)
+            if response.get("success", False):
+                self._refresh_queue()
+                self.messageChanged.emit(f"Deleted {len(uids)} item(s) from queue")
+            else:
+                error_msg = response.get("msg", "Unknown error")
+                self.messageChanged.emit(
+                    f"Failed to delete items from queue: {error_msg}"
+                )
+        except Exception as e:
+            self.messageChanged.emit(f"Error deleting items from queue: {e}")
 
     def _refresh_queue(self):
         """Refresh queue data from server."""
