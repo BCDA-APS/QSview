@@ -298,7 +298,7 @@ class QueueServerModel(QtCore.QObject):
             self.messageChanged.emit("Not connected to server")
             return
         try:
-            response = self._rem_api.item_remove_batch(uids, ignore_missing=True)
+            response = self._rem_api.item_remove_batch(uids=uids, ignore_missing=True)
             if response.get("success", False):
                 self._refresh_queue()
                 self.messageChanged.emit(f"Deleted {len(uids)} item(s) from queue")
@@ -319,6 +319,25 @@ class QueueServerModel(QtCore.QObject):
                 self.queueChanged.emit(self._queue)
         except Exception as e:
             self.messageChanged.emit(f"Error refreshing queue: {e}")
+
+    def set_queue_mode(self, loop_mode, ignore_failures=None):
+        """Set queue execution mode parameters."""
+        if not self._rem_api or not self._is_connected:
+            self.messageChanged.emit("Not connected to server")
+            return False
+        try:
+            mode = {"loop": loop_mode}
+            if ignore_failures is not None:
+                mode["ignore_failures"] = ignore_failures
+            success, msg = self._rem_api.queue_mode_set(mode=mode)
+            if success:
+                self.messageChanged.emit(f"Queue mode set to {loop_mode}")
+            else:
+                self.messageChanged.emit(f"Failed to change the queue mode: {msg}")
+            return success
+        except Exception as e:
+            self.messageChanged.emit(f"Error changing queue mode: {e}")
+            return False
 
     def fetchQueue(self):
         """Fetch queue from server and update cache."""
