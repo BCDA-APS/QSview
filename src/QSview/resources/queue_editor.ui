@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>934</width>
-    <height>463</height>
+    <height>435</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -228,6 +228,8 @@
          <string notr="true">QTableView {
     gridline-color: #d0d0d0;
     background-color: white;
+    selection-background-color: #2196F3;
+    selection-color: white;
 }
 QTableView::item {
     padding: 5px;
@@ -244,10 +246,14 @@ QHeaderView::section {
 QTableView::item:selected {
     background-color: #2196F3;
     color: white;
+    border: none;
+    outline: none;
 }
 QTableView::item:alternate:selected {
     background-color: #2196F3;
     color: white;
+    border: none;
+    outline: none;
 }</string>
         </property>
         <property name="editTriggers">
