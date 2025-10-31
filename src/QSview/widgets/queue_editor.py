@@ -44,7 +44,12 @@ class QueueEditorWidget(QtWidgets.QWidget):
         # Connect UI signals
         self.clearButton.clicked.connect(self._on_clear_clicked)
         self.duplicateButton.clicked.connect(self._on_copy_to_queue_clicked)
+        self.deleteButton.clicked.connect(self._on_delete_clicked)
         self.viewCheckBox.stateChanged.connect(self._on_toggle_view)
+
+        # Checkbox queue mode (loop)
+        self.loopBox.setChecked(False)
+        self.loopBox.stateChanged.connect(self._on_toggle_loop)
 
     def _on_queue_needs_update(self):
         """Handle queue update signal."""
@@ -69,7 +74,7 @@ class QueueEditorWidget(QtWidgets.QWidget):
         self._resize_table()
 
     def _on_copy_to_queue_clicked(self):
-        """Copy the selected plan to the queue"""
+        """Copy the selected plan(s) to the queue"""
         if not self.model:
             return
 
@@ -79,7 +84,7 @@ class QueueEditorWidget(QtWidgets.QWidget):
 
         if not selected_rows:
             # No selection - show message
-            self.model.messageChanged.emit("Please select a plan to duplicate")
+            self.model.messageChanged.emit("Please select plan(s) to duplicate")
             return
 
         # Get the plan data for selected rows
@@ -96,6 +101,48 @@ class QueueEditorWidget(QtWidgets.QWidget):
         # Add items directly to queue
         if selected_items:
             self.model.add_items_to_queue(selected_items)
+
+    def _on_delete_clicked(self):
+        """Delete the selected plan(s) from the queue"""
+        if not self.model:
+            return
+
+        # get selected rows
+        selection = self.tableView.selectionModel()
+        selected_rows = selection.selectedRows()
+
+        if not selected_rows:
+            # No selection - show message
+            self.model.messageChanged.emit("Please select plan(s) to delete")
+            return
+
+        # Get the plan data for selected rows
+        queue_data = self.model.getQueue()
+        uids_to_delete = []
+
+        for row in selected_rows:
+            row_index = row.row()
+            if row_index < len(queue_data):
+                # Extract the item_uid from queue data
+                queue_item = queue_data[row_index]
+                item_uid = queue_item.get("item_uid", "")
+                if item_uid:
+                    uids_to_delete.append(item_uid)
+
+        # Delete items using their UIDs
+        if uids_to_delete:
+            print(uids_to_delete)
+            self.model.delete_items_from_queue(uids_to_delete)
+
+    def _on_toggle_loop(self):
+        """Toggle between loop mode on and off."""
+        if not self.model:
+            return
+
+        if self.loopBox.isChecked():
+            self.model.set_queue_mode(loop_mode=True, ignore_failures=True)
+        else:
+            self.model.set_queue_mode(loop_mode=False, ignore_failures=True)
 
     def _on_clear_clicked(self):
         """Clear the queue on the server."""
