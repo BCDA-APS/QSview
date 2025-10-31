@@ -18,7 +18,9 @@ class DynamicQueueTableModel(QtGui.QStandardItemModel):
     def setup_headers(self, queue_data):
         """Set up table column headers based on data content."""
         if not queue_data:
-            self.setHorizontalHeaderLabels(["Name", "User", "Edit", "Delete"])
+            self.setHorizontalHeaderLabels(
+                ["Name", "Metadata", "User", "Edit", "Delete"]
+            )
             return
 
         # Collect all unique parameter names in order of first appearance
