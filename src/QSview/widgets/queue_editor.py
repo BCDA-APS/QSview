@@ -6,6 +6,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import QTimer
 
 from .. import utils
+from .queue_button_delegate import ButtonDelegate
 from .queue_model import QueueTableModel
 from .queue_model_dynamic import DynamicQueueTableModel
 
@@ -51,12 +52,44 @@ class QueueEditorWidget(QtWidgets.QWidget):
         self.modeComboBox.addItems(["Default Mode", "Loop Mode", "Loop Until Failure"])
         self.modeComboBox.currentTextChanged.connect(self._on_mode_changed)
 
+    def _setup_delegates(self):
+        """Set up button delegates for Edit/Delete columns."""
+        model = self.current_model
+        if model.columnCount() < 2:  # Need at least Edit and Delete columns
+            return
+
+        # Clear ALL column delegates first (important when switching models)
+        for col in range(
+            self.tableView.model().columnCount() if self.tableView.model() else 0
+        ):
+            self.tableView.setItemDelegateForColumn(col, None)
+
+        edit_col = model.columnCount() - 2
+        delete_col = model.columnCount() - 1
+
+        # Then create new ones
+        edit_delegate = ButtonDelegate(self)
+        edit_delegate.button_clicked.connect(self._on_delegate_button_clicked)
+        self.tableView.setItemDelegateForColumn(edit_col, edit_delegate)
+
+        delete_delegate = ButtonDelegate(self)
+        delete_delegate.button_clicked.connect(self._on_delegate_button_clicked)
+        self.tableView.setItemDelegateForColumn(delete_col, delete_delegate)
+
+    def _on_delegate_button_clicked(self, row, is_edit):
+        """Handle button click from delegate."""
+        if is_edit:
+            self._on_edit_cell_clicked(row)
+        else:
+            self._on_delete_cell_clicked(row)
+
     def _on_queue_needs_update(self):
         """Handle queue update signal."""
         self.model.fetchQueue()
 
     def _schedule_resize(self, *_):
         QTimer.singleShot(0, self._resize_table)
+        QTimer.singleShot(10, self._setup_delegates)  # Setup delegates after resize
 
     def _on_toggle_view(self):
         """Toggle between static and dynamic view."""
@@ -72,6 +105,7 @@ class QueueEditorWidget(QtWidgets.QWidget):
         # Update the table view
         self.tableView.setModel(self.current_model)
         self._resize_table()
+        self._setup_delegates()
 
     def _on_copy_to_queue_clicked(self):
         """Copy the selected plan(s) to the queue"""
@@ -159,6 +193,23 @@ class QueueEditorWidget(QtWidgets.QWidget):
             if self.model:
                 self.model.clearQueue()
             self.model.messageChanged.emit("Queue cleared")
+
+    def _on_edit_cell_clicked(self, row):
+        """Handle Edit button click for a specific row."""
+        queue_data = self.model.getQueue()
+        if row < len(queue_data):
+            queue_item = queue_data[row]
+            print(f"Edit clicked for row {row}: {queue_item.get('name')}")
+            # TODO: Edit logic goes here
+
+    def _on_delete_cell_clicked(self, row):
+        """Handle Delete button click for a specific row."""
+        queue_data = self.model.getQueue()
+        if row < len(queue_data):
+            queue_item = queue_data[row]
+            item_uid = queue_item.get("item_uid")
+            if item_uid:
+                self.model.delete_items_from_queue([item_uid])
 
     def _resize_table(self):
         max_length = (
