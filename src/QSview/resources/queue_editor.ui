@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>934</width>
-    <height>491</height>
+    <height>463</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -120,17 +120,6 @@
         </size>
        </property>
       </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="editButton">
-       <property name="toolTip">
-        <string>Edit plan</string>
-       </property>
-       <property name="icon">
-        <iconset>
-         <normaloff>icons/edit.png</normaloff>icons/edit.png</iconset>
-       </property>
-      </widget>
      </item>
      <item>
       <widget class="QPushButton" name="duplicateButton">
