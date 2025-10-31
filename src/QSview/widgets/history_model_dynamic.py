@@ -18,7 +18,7 @@ class DynamicHistoryTableModel(QtGui.QStandardItemModel):
     def setup_headers(self, history_data):
         """Set up table column headers based on data content."""
         if not history_data:
-            self.setHorizontalHeaderLabels(["Status", "Name", "User"])
+            self.setHorizontalHeaderLabels(["Status", "Name", "Metadata", "User"])
             return
 
         # Collect all unique parameter names in order of first appearance
@@ -28,11 +28,12 @@ class DynamicHistoryTableModel(QtGui.QStandardItemModel):
             kwargs = item.get("kwargs", {})
             for param in kwargs.keys():
                 if param not in seen_params:
-                    all_params.append(param)
-                    seen_params.add(param)
+                    if param != "md":
+                        all_params.append(param)
+                        seen_params.add(param)
 
         # Create column headers: fixed columns + dynamic parameters
-        headers = ["Status", "Name"] + all_params + ["User"]
+        headers = ["Status", "Name"] + all_params + ["Metadata", "User"]
         self.setHorizontalHeaderLabels(headers)
 
     def update_data(self, history_data):
@@ -65,10 +66,13 @@ class DynamicHistoryTableModel(QtGui.QStandardItemModel):
             self.horizontalHeaderItem(i).text() for i in range(self.columnCount())
         ]
 
-        # Add parameter values (skip Status, Name, and User)
-        for header in headers[2:-1]:
+        # Add parameter values; skip Status, Name (first 2 columns), Metadata and User (last 2)
+        for header in headers[2:-2]:
             value = kwargs.get(header, "")
             row_data.append(str(value) if value != "" else "")
+
+        # Add metadata
+        row_data.append(kwargs.get("md", ""))
 
         # Add User last
         row_data.append(history_item.get("user", "Unknown"))

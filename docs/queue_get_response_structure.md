@@ -71,4 +71,3 @@ response = self._rem_api.queue_get()
   - The UID remains constant throughout the item's lifetime in the queue
 
 - **`plan_queue_uid`**: This changes whenever the queue is modified. It can be used to detect if the queue has changed since the last fetch.
-
