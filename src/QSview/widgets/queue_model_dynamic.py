@@ -28,11 +28,12 @@ class DynamicQueueTableModel(QtGui.QStandardItemModel):
             kwargs = item.get("kwargs", {})
             for param in kwargs.keys():
                 if param not in seen_params:
-                    all_params.append(param)
-                    seen_params.add(param)
+                    if param != "md":
+                        all_params.append(param)
+                        seen_params.add(param)
 
         # Create column headers: fixed columns + dynamic parameters
-        headers = ["Name"] + all_params + ["User", "Edit", "Delete"]
+        headers = ["Name"] + all_params + ["Metadata", "User", "Edit", "Delete"]
         self.setHorizontalHeaderLabels(headers)
 
     def update_data(self, queue_data):
@@ -63,10 +64,13 @@ class DynamicQueueTableModel(QtGui.QStandardItemModel):
             self.horizontalHeaderItem(i).text() for i in range(self.columnCount())
         ]
 
-        # Add parameter values (skip Name, and User)
-        for header in headers[1:-3]:
+        # Add parameter values; skip Name (1st column), Metadata, User, Edit, and Delete (last 4 columns)
+        for header in headers[1:-4]:
             value = kwargs.get(header, "")
             row_data.append(str(value) if value != "" else "")
+
+        # Add metadata
+        row_data.append(kwargs.get("md", ""))
 
         # Add User last
         row_data.append(queue_item.get("user", "Unknown"))
