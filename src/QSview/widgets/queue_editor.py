@@ -47,9 +47,9 @@ class QueueEditorWidget(QtWidgets.QWidget):
         self.deleteButton.clicked.connect(self._on_delete_clicked)
         self.viewCheckBox.stateChanged.connect(self._on_toggle_view)
 
-        # Checkbox queue mode (loop)
-        self.loopBox.setChecked(False)
-        self.loopBox.stateChanged.connect(self._on_toggle_loop)
+        # Populate modeComboBox
+        self.modeComboBox.addItems(["Default Mode", "Loop Mode", "Loop Until Failure"])
+        self.modeComboBox.currentTextChanged.connect(self._on_mode_changed)
 
     def _on_queue_needs_update(self):
         """Handle queue update signal."""
@@ -134,15 +134,17 @@ class QueueEditorWidget(QtWidgets.QWidget):
             print(uids_to_delete)
             self.model.delete_items_from_queue(uids_to_delete)
 
-    def _on_toggle_loop(self):
-        """Toggle between loop mode on and off."""
+    def _on_mode_changed(self, text):
+        """Change queue execution mode."""
         if not self.model:
             return
 
-        if self.loopBox.isChecked():
+        if text == "Default Mode":
+            self.model.set_queue_mode(loop_mode="default")
+        elif text == "Loop Mode":
             self.model.set_queue_mode(loop_mode=True, ignore_failures=True)
-        else:
-            self.model.set_queue_mode(loop_mode=False, ignore_failures=True)
+        elif text == "Loop Until Failure":
+            self.model.set_queue_mode(loop_mode=True, ignore_failures=False)
 
     def _on_clear_clicked(self):
         """Clear the queue on the server."""

@@ -326,12 +326,17 @@ class QueueServerModel(QtCore.QObject):
             self.messageChanged.emit("Not connected to server")
             return False
         try:
-            mode = {"loop": loop_mode}
-            if ignore_failures is not None:
-                mode["ignore_failures"] = ignore_failures
+            if loop_mode == "default":
+                mode = "default"
+            else:
+                mode = {"loop": loop_mode}
+                if ignore_failures is not None:
+                    mode["ignore_failures"] = ignore_failures
             success, msg = self._rem_api.queue_mode_set(mode=mode)
             if success:
-                self.messageChanged.emit(f"Queue mode set to {loop_mode}")
+                self.messageChanged.emit(
+                    f"Queue mode set to loop = {loop_mode} ; ignore failures = {ignore_failures}"
+                )
             else:
                 self.messageChanged.emit(f"Failed to change the queue mode: {msg}")
             return success
