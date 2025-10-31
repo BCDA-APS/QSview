@@ -2,7 +2,7 @@
 Queue Editor Widget - for editing and managing the queue.
 """
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import QTimer
 
 from .. import utils
@@ -31,6 +31,9 @@ class QueueEditorWidget(QtWidgets.QWidget):
         # Start with static model
         self.current_model = self.dynamic_model
         self.tableView.setModel(self.current_model)
+
+        # Install event filter to handle ESC key for deselection
+        self.tableView.installEventFilter(self)
 
         # Checkbox toggle view
         self.viewCheckBox.setChecked(True)
@@ -218,6 +221,14 @@ class QueueEditorWidget(QtWidgets.QWidget):
             else utils.MAX_LENGTH_COLUMN_QUEUE_DYNAMIC
         )
         utils.resize_table_with_caps(self.tableView, max_length)
+
+    def eventFilter(self, obj, event):
+        """Handle ESC key to deselect rows in table view."""
+        if obj == self.tableView and event.type() == QtCore.QEvent.KeyPress:
+            if event.key() == QtCore.Qt.Key_Escape:
+                self.tableView.clearSelection()
+                return True
+        return super().eventFilter(obj, event)
 
     def onConnectionChanged(self, is_connected, control_addr, info_addr):
         """Handle connection changes from QueueServerModel signal."""
