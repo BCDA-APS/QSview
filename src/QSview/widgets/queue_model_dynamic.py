@@ -86,4 +86,7 @@ class DynamicQueueTableModel(QtGui.QStandardItemModel):
 
         for col, data in enumerate(row_data):
             item = QtGui.QStandardItem(str(data))
+            header = self.horizontalHeaderItem(col).text()
+            if header == "Metadata":
+                item.setToolTip(str(data))
             self.setItem(row, col, item)

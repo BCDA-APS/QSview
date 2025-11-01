@@ -56,6 +56,9 @@ class HistoryTableModel(QtGui.QStandardItemModel):
         # Set data for each column
         for col, data in enumerate(row_data):
             item = QtGui.QStandardItem(str(data))
+            header = self.horizontalHeaderItem(col).text()
+            if header == "Arguments":
+                item.setToolTip(str(data))
             self.setItem(row, col, item)
 
     def format_arguments(self, kwargs):
