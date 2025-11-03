@@ -39,9 +39,7 @@ class HistoryWidget(QtWidgets.QWidget):
         self.viewCheckBox.setText("Detailed View")
 
         # Connect to model signals
-        self.model.historyChanged.connect(self.static_model.update_data)
-        self.model.historyChanged.connect(self.dynamic_model.update_data)
-        self.model.historyChanged.connect(self._schedule_resize)
+        self.model.historyChanged.connect(self._on_queue_changed)
         self.model.historyNeedsUpdate.connect(self._on_history_needs_update)
 
         # Connect UI signals
@@ -49,23 +47,41 @@ class HistoryWidget(QtWidgets.QWidget):
         self.copyHistoryButton.clicked.connect(self._on_copy_to_queue_clicked)
         self.viewCheckBox.stateChanged.connect(self._on_toggle_view)
 
+    def _on_queue_changed(self, history_data):
+        """Handle queue changed signal"""
+
+        # Save current scroll positions
+        vsb = self.tableView.verticalScrollBar()
+        hsb = self.tableView.horizontalScrollBar()
+        v = vsb.value()
+        h = hsb.value()
+
+        # Update both models
+        self.current_model.update_data(history_data)
+
+        # Schedule resize, delegate and restore scroll position
+        QTimer.singleShot(0, self._resize_table)
+        # TODO: fix flickering
+        QTimer.singleShot(20, lambda: self._restore_scroll_position(v, h))
+
     def _on_history_needs_update(self):
         """Handle history update signal."""
         self.model.fetchHistory()
 
-    def _schedule_resize(self, *_):
-        QTimer.singleShot(0, self._resize_table)
-
     def _on_toggle_view(self):
         """Toggle between static and dynamic view."""
+        # Get current queue data before switching
+        history_data = self.model.getHistory() if self.model else []
         if self.viewCheckBox.isChecked():
             # Switch to dynamic
             self.current_model = self.dynamic_model
             self.viewCheckBox.setText("Detailed View")
+            self.dynamic_model.update_data(history_data)
         else:
             # Switch to static
             self.current_model = self.static_model
             self.viewCheckBox.setText("Summary View")
+            self.static_model.update_data(history_data)
 
         # Update the table view
         self.tableView.setModel(self.current_model)
@@ -117,12 +133,20 @@ class HistoryWidget(QtWidgets.QWidget):
             self.model.messageChanged.emit("Queue cleared")
 
     def _resize_table(self):
+        """Resize table columns based on current model view type."""
         max_length = (
             utils.MAX_LENGTH_COLUMN_HISTORY_STATIC
             if self.current_model == self.static_model
             else utils.MAX_LENGTH_COLUMN_HISTORY_DYNAMIC
         )
         utils.resize_table_with_caps(self.tableView, max_length)
+
+    def _restore_scroll_position(self, v, h):
+        """Restore vertical and horizontal scroll positions after table update."""
+        vsb = self.tableView.verticalScrollBar()
+        hsb = self.tableView.horizontalScrollBar()
+        vsb.setValue(min(v, vsb.maximum()))
+        hsb.setValue(min(h, hsb.maximum()))
 
     def eventFilter(self, obj, event):
         """Handle ESC key to deselect rows in table view."""
