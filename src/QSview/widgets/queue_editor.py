@@ -40,9 +40,7 @@ class QueueEditorWidget(QtWidgets.QWidget):
         self.viewCheckBox.setText("Detailed View")
 
         # Connect to model signals
-        self.model.queueChanged.connect(self.static_model.update_data)
-        self.model.queueChanged.connect(self.dynamic_model.update_data)
-        self.model.queueChanged.connect(self._schedule_resize)
+        self.model.queueChanged.connect(self._on_queue_changed)
         self.model.queueNeedsUpdate.connect(self._on_queue_needs_update)
 
         # Connect UI signals
@@ -54,6 +52,28 @@ class QueueEditorWidget(QtWidgets.QWidget):
         # Populate modeComboBox
         self.modeComboBox.addItems(["Default Mode", "Loop Mode", "Loop Until Failure"])
         self.modeComboBox.currentTextChanged.connect(self._on_mode_changed)
+
+    def _on_queue_changed(self, queue_data):
+        """Handle queue changed signal"""
+
+        # Save current scroll positions
+        # vsb = self.tableView.verticalScrollBar()
+        # hsb = self.tableView.horizontalScrollBar()
+        # v = vsb.value()
+        # h = hsb.value()
+
+        # Update model
+        self.current_model.update_data(queue_data)
+
+        # Schedule resize, delegate and restore scroll position
+        QTimer.singleShot(0, self._resize_table)
+        QTimer.singleShot(10, self._setup_delegates)
+        # TODO: fix scroll bar flickering
+        # QTimer.singleShot(20, lambda: self._restore_scroll_position(v, h))
+
+    def _on_queue_needs_update(self):
+        """Handle queue update signal."""
+        self.model.fetchQueue()
 
     def _setup_delegates(self):
         """Set up button delegates for Edit/Delete columns."""
@@ -86,24 +106,20 @@ class QueueEditorWidget(QtWidgets.QWidget):
         else:
             self._on_delete_cell_clicked(row)
 
-    def _on_queue_needs_update(self):
-        """Handle queue update signal."""
-        self.model.fetchQueue()
-
-    def _schedule_resize(self, *_):
-        QTimer.singleShot(0, self._resize_table)
-        QTimer.singleShot(10, self._setup_delegates)  # Setup delegates after resize
-
     def _on_toggle_view(self):
         """Toggle between static and dynamic view."""
+        # Get current queue data before switching
+        queue_data = self.model.getQueue() if self.model else []
         if self.viewCheckBox.isChecked():
             # Switch to dynamic
             self.current_model = self.dynamic_model
             self.viewCheckBox.setText("Detailed View")
+            self.dynamic_model.update_data(queue_data)
         else:
             # Switch to static
             self.current_model = self.static_model
             self.viewCheckBox.setText("Summary View")
+            self.static_model.update_data(queue_data)
 
         # Update the table view
         self.tableView.setModel(self.current_model)
@@ -215,12 +231,20 @@ class QueueEditorWidget(QtWidgets.QWidget):
                 self.model.delete_items_from_queue([item_uid])
 
     def _resize_table(self):
+        """Resize table columns based on current model view type."""
         max_length = (
             utils.MAX_LENGTH_COLUMN_QUEUE_STATIC
             if self.current_model == self.static_model
             else utils.MAX_LENGTH_COLUMN_QUEUE_DYNAMIC
         )
         utils.resize_table_with_caps(self.tableView, max_length)
+
+    def _restore_scroll_position(self, v, h):
+        """Restore vertical and horizontal scroll positions after table update."""
+        vsb = self.tableView.verticalScrollBar()
+        hsb = self.tableView.horizontalScrollBar()
+        vsb.setValue(min(v, vsb.maximum()))
+        hsb.setValue(min(h, hsb.maximum()))
 
     def eventFilter(self, obj, event):
         """Handle ESC key to deselect rows in table view."""
@@ -236,6 +260,22 @@ class QueueEditorWidget(QtWidgets.QWidget):
             # Fetch queue when connected
             self.model.fetchQueue()
             QTimer.singleShot(0, self._resize_table)
+            QTimer.singleShot(10, self._setup_delegates)
+            # Handle plan mode at connection
+            self.modeComboBox.blockSignals(True)
+            try:
+                status = self.model.getStatus()
+                plan_mode = status.get("plan_queue_mode", {})
+                loop = plan_mode.get("loop", False)
+                ignore_failures = plan_mode.get("ignore_failures", False)
+                if loop and ignore_failures:
+                    self.modeComboBox.setCurrentIndex(1)
+                elif loop and not ignore_failures:
+                    self.modeComboBox.setCurrentIndex(2)
+                else:
+                    self.modeComboBox.setCurrentIndex(0)
+            finally:
+                self.modeComboBox.blockSignals(False)
 
     def onStatusChanged(self, is_connected, status):
         """Handle periodic status updates from model (every 0.5s)."""
