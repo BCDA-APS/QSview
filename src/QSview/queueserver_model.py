@@ -37,6 +37,7 @@ class QueueServerModel(QtCore.QObject):
     statusChanged = QtCore.pyqtSignal(bool, object)
     messageChanged = QtCore.pyqtSignal(str)
     queueChanged = QtCore.pyqtSignal(object)
+    queueNeedsUpdate = QtCore.pyqtSignal()
     historyChanged = QtCore.pyqtSignal(object)
     historyNeedsUpdate = QtCore.pyqtSignal()
 
@@ -59,6 +60,7 @@ class QueueServerModel(QtCore.QObject):
         self._queue = {}
         self._history = {}
         self._history_uid = ""
+        self._queue_uid = ""
 
         # User info
         self._user_name = "GUI Client"
@@ -115,6 +117,8 @@ class QueueServerModel(QtCore.QObject):
             self._control_addr = control_addr
             self._info_addr = info_addr
             self._status = status
+            self._queue_uid = status.get("plan_queue_uid", "")
+            self._history_uid = status.get("plan_history_uid", "")
 
             # Save for reconnection
             self._last_successful_control_addr = control_addr
@@ -220,7 +224,7 @@ class QueueServerModel(QtCore.QObject):
         """
         Periodic status update (called by timer).
 
-        This method is called every 1 seconds to update the server status.
+        This method is called every 0.5 seconds to update the server status.
         If the connection fails, it will automatically disconnect.
         """
         if not self._rem_api or not self._is_connected:
@@ -236,7 +240,13 @@ class QueueServerModel(QtCore.QObject):
                 self._history_uid = new_history_uid
                 self.historyNeedsUpdate.emit()
 
-            # Emit signal - TODO: should we check for changes to emit or always emit?
+            # Check if queue UID has changed
+            new_queue_uid = self._status.get("plan_queue_uid", "")
+            if new_queue_uid != self._queue_uid:
+                self._queue_uid = new_queue_uid
+                self.queueNeedsUpdate.emit()
+
+            # Emit signal
             self.statusChanged.emit(self._is_connected, self._status)
 
         except Exception as e:
@@ -282,6 +292,24 @@ class QueueServerModel(QtCore.QObject):
         except Exception as e:
             self.messageChanged.emit(f"Error adding items to queue: {e}")
 
+    def delete_items_from_queue(self, uids):
+        """Delete multiple items from the queue."""
+        if not self._rem_api or not self._is_connected:
+            self.messageChanged.emit("Not connected to server")
+            return
+        try:
+            response = self._rem_api.item_remove_batch(uids=uids, ignore_missing=True)
+            if response.get("success", False):
+                self._refresh_queue()
+                self.messageChanged.emit(f"Deleted {len(uids)} item(s) from queue")
+            else:
+                error_msg = response.get("msg", "Unknown error")
+                self.messageChanged.emit(
+                    f"Failed to delete items from queue: {error_msg}"
+                )
+        except Exception as e:
+            self.messageChanged.emit(f"Error deleting items from queue: {e}")
+
     def _refresh_queue(self):
         """Refresh queue data from server."""
         try:
@@ -291,6 +319,76 @@ class QueueServerModel(QtCore.QObject):
                 self.queueChanged.emit(self._queue)
         except Exception as e:
             self.messageChanged.emit(f"Error refreshing queue: {e}")
+
+    def set_queue_mode(self, loop_mode, ignore_failures=None):
+        """Set queue execution mode parameters."""
+        if not self._rem_api or not self._is_connected:
+            self.messageChanged.emit("Not connected to server")
+            return False
+        try:
+            if loop_mode == "default":
+                mode = "default"
+            else:
+                mode = {"loop": loop_mode}
+                if ignore_failures is not None:
+                    mode["ignore_failures"] = ignore_failures
+            success, msg = self._rem_api.queue_mode_set(mode=mode)
+            if success:
+                self.messageChanged.emit(
+                    f"Queue mode set to loop = {loop_mode} ; ignore failures = {ignore_failures}"
+                )
+            else:
+                self.messageChanged.emit(f"Failed to change the queue mode: {msg}")
+            return success
+        except Exception as e:
+            self.messageChanged.emit(f"Error changing queue mode: {e}")
+            return False
+
+    def fetchQueue(self):
+        """Fetch queue from server and update cache."""
+        if not self._rem_api or not self._is_connected:
+            return []
+        try:
+            response = self._rem_api.queue_get()
+            if response.get("success", False):
+                # Store in cache
+                self._queue = response.get("items", [])
+                # Emit signal for UI updates
+                self.queueChanged.emit(self._queue)
+                return self._queue
+            else:
+                # Handle API error
+                error_msg = response.get("msg", "Unknown error")
+                self.messageChanged.emit(f"Failed to get queue: {error_msg}")
+                return []
+        except Exception as e:
+            # Handle connection/API errors
+            self.messageChanged.emit(f"Error getting queue: {e}")
+            return []
+
+    def clearQueue(self):
+        """Clear the queue on the server."""
+        if not self._rem_api or not self._is_connected:
+            self.messageChanged.emit("Not connected to server")
+            return False
+
+        try:
+            # Clear entire queue
+            success, msg = self._rem_api.queue_clear()
+            if success:
+                self._queue = []
+                self.queueChanged.emit([])
+                self.messageChanged.emit("Queue cleared successfully")
+            else:
+                self.messageChanged.emit(f"Failed to clear queue: {msg}")
+            return success
+        except Exception as e:
+            self.messageChanged.emit(f"Error clearing queue: {e}")
+            return False
+
+    def getQueue(self):
+        """Get the cached queue data."""
+        return self._queue.copy()
 
     # ========================================
     # History Methods

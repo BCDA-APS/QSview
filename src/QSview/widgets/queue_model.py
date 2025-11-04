@@ -1,5 +1,5 @@
 """
-History Table Model - displays queue history in a table format.
+Queue Table Model - displays queue items in a table format.
 """
 
 from PyQt5 import QtGui
@@ -7,8 +7,8 @@ from PyQt5 import QtGui
 from ..utils import format_kwargs_three_lines
 
 
-class HistoryTableModel(QtGui.QStandardItemModel):
-    """Table model for displaying queue history with static columns."""
+class QueueTableModel(QtGui.QStandardItemModel):
+    """Table model for displaying queue items with static columns."""
 
     def __init__(self, parent=None, table_view=None):
         super().__init__(parent)
@@ -17,17 +17,17 @@ class HistoryTableModel(QtGui.QStandardItemModel):
 
     def setup_headers(self):
         """Set up table column headers."""
-        headers = ["Status", "Name", "Arguments", "User"]
+        headers = ["Name", "Arguments", "User", "Edit", "Delete"]
         self.setHorizontalHeaderLabels(headers)
 
-    def update_data(self, history_data):
-        """Update table with new history data."""
+    def update_data(self, queue_data):
+        """Update table with new queue data."""
         # Clear existing data
         self.clear()
         self.setup_headers()
 
-        # Add each history item as a row
-        for item_data in history_data:
+        # Add each queue item as a row
+        for item_data in queue_data:
             row_data = self.extract_row_data(item_data)
             self.add_row(row_data)
 
@@ -36,16 +36,13 @@ class HistoryTableModel(QtGui.QStandardItemModel):
             self.table_view.resizeColumnsToContents()
             self.table_view.resizeRowsToContents()
 
-    def extract_row_data(self, history_item):
-        """Extract data for a single row from history item."""
-
-        result = history_item.get("result", {})
+    def extract_row_data(self, queue_item):
+        """Extract data for a single row from queue item."""
 
         return [
-            result.get("exit_status", "Unknown"),  # Status
-            history_item.get("name", "Unknown"),  # Name
-            self.format_arguments(history_item.get("kwargs", {})),  # Arguments
-            history_item.get("user", "Unknown"),  # User
+            queue_item.get("name", "Unknown"),  # Name
+            self.format_arguments(queue_item.get("kwargs", {})),  # Arguments
+            queue_item.get("user", "Unknown"),  # User
         ]
 
     def add_row(self, row_data):

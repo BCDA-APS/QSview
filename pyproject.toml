@@ -62,6 +62,7 @@ exclude = [
     "node_modules",
     "venv",
     "docs",
+    "**/resources_rc.py",  # Auto-generated file from resources.qrc
 ]
 
 # Same as Black.

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>784</width>
-    <height>251</height>
+    <width>934</width>
+    <height>407</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -37,7 +37,7 @@
         <string>Add plan to queue</string>
        </property>
        <property name="text">
-        <string>Add to Queue</string>
+        <string>Add new plan</string>
        </property>
        <property name="icon">
         <iconset>
@@ -102,15 +102,24 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="editButton">
-       <property name="toolTip">
-        <string>Edit plan</string>
-       </property>
-       <property name="icon">
-        <iconset>
-         <normaloff>icons/edit.png</normaloff>icons/edit.png</iconset>
+      <widget class="QCheckBox" name="viewCheckBox">
+       <property name="text">
+        <string>Detailed View</string>
        </property>
       </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_5">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
      </item>
      <item>
       <widget class="QPushButton" name="duplicateButton">
@@ -138,7 +147,7 @@
       </widget>
      </item>
      <item>
-      <spacer name="horizontalSpacer_2">
+      <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -151,14 +160,14 @@
       </spacer>
      </item>
      <item>
-      <widget class="QCheckBox" name="loopBox">
-       <property name="text">
-        <string>Loop</string>
+      <widget class="QComboBox" name="modeComboBox">
+       <property name="currentText">
+        <string/>
        </property>
       </widget>
      </item>
      <item>
-      <spacer name="horizontalSpacer">
+      <spacer name="horizontalSpacer_6">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -219,6 +228,8 @@
          <string notr="true">QTableView {
     gridline-color: #d0d0d0;
     background-color: white;
+    selection-background-color: #2196F3;
+    selection-color: white;
 }
 QTableView::item {
     padding: 5px;
@@ -235,11 +246,36 @@ QHeaderView::section {
 QTableView::item:selected {
     background-color: #2196F3;
     color: white;
+    border: none;
+    outline: none;
 }
 QTableView::item:alternate:selected {
     background-color: #2196F3;
     color: white;
+    border: none;
+    outline: none;
 }</string>
+        </property>
+        <property name="autoScroll">
+         <bool>false</bool>
+        </property>
+        <property name="editTriggers">
+         <set>QAbstractItemView::NoEditTriggers</set>
+        </property>
+        <property name="dragEnabled">
+         <bool>true</bool>
+        </property>
+        <property name="dragDropMode">
+         <enum>QAbstractItemView::DragDrop</enum>
+        </property>
+        <property name="alternatingRowColors">
+         <bool>true</bool>
+        </property>
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectRows</enum>
+        </property>
+        <property name="wordWrap">
+         <bool>false</bool>
         </property>
        </widget>
       </item>

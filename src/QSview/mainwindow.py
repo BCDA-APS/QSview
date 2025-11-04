@@ -66,8 +66,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Splitters and stretch factors
         self.splitter_V.setSizes([90, 340, 200, 200])
-        self.splitter_H1.setSizes([500, 500])
-        self.splitter_H2.setSizes([500, 500])
+        self.splitter_H2.setSizes([300, 700])
         # Set stretch factors for each section (index, factor)
         self.splitter_V.setStretchFactor(0, 0)  # Status - fixed size (no stretch)
         self.splitter_V.setStretchFactor(1, 2)  # Middle section - gets 2x stretch
