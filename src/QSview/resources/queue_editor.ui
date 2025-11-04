@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>934</width>
-    <height>435</height>
+    <height>407</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -255,6 +255,9 @@ QTableView::item:alternate:selected {
     border: none;
     outline: none;
 }</string>
+        </property>
+        <property name="autoScroll">
+         <bool>false</bool>
         </property>
         <property name="editTriggers">
          <set>QAbstractItemView::NoEditTriggers</set>
