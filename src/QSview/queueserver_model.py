@@ -320,6 +320,34 @@ class QueueServerModel(QtCore.QObject):
         except Exception as e:
             self.messageChanged.emit(f"Error refreshing queue: {e}")
 
+    def move_queue_items(
+        self, uids, pos_dest=None, before_uid=None, after_uid=None, reorder=True
+    ):
+        """Move a batch of queue items to a new position."""
+        if not self._rem_api or not self._is_connected:
+            self.messageChanged.emit("Not connected to server")
+            return False
+        try:
+            kwargs = {"uids": uids, "reorder": reorder}
+            if pos_dest is not None:
+                kwargs["pos_dest"] = pos_dest
+            elif before_uid is not None:
+                kwargs["before_uid"] = before_uid
+            elif after_uid is not None:
+                kwargs["after_uid"] = after_uid
+            else:
+                self.messageChanged.emit("Invalid position")
+                return False
+            response = self._rem_api.queue_item_move_batch(**kwargs)
+            if response.get("success", False):
+                self._refresh_queue()
+                self.messageChanged.emit(f"Moved {len(uids)} item(s)")
+            else:
+                error_msg = response.get("msg", "Unknown error")
+                self.messageChanged.emit(f"Failed to move items: {error_msg}")
+        except Exception as e:
+            self.messageChanged.emit(f"Error moving items: {e}")
+
     def set_queue_mode(self, loop_mode, ignore_failures=None):
         """Set queue execution mode parameters."""
         if not self._rem_api or not self._is_connected:
