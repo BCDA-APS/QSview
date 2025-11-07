@@ -338,7 +338,7 @@ class QueueServerModel(QtCore.QObject):
             else:
                 self.messageChanged.emit("Invalid position")
                 return False
-            response = self._rem_api.queue_item_move_batch(**kwargs)
+            response = self._rem_api.item_move_batch(**kwargs)
             if response.get("success", False):
                 self._refresh_queue()
                 self.messageChanged.emit(f"Moved {len(uids)} item(s)")
