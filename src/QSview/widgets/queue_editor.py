@@ -19,6 +19,10 @@ class QueueEditorWidget(QtWidgets.QWidget):
     def __init__(self, parent=None, model=None):
         super().__init__(parent)
         utils.myLoadUi(self.ui_file, baseinstance=self)
+        self.tableView.set_helpers(
+            get_uid_for_row=self._get_uid_for_row,
+            move_items=self._move_items,
+        )
         self.model = model
         self.setup()
 
@@ -220,6 +224,17 @@ class QueueEditorWidget(QtWidgets.QWidget):
             queue_item = queue_data[row]
             print(f"Edit clicked for row {row}: {queue_item.get('name')}")
             # TODO: Edit logic goes here
+
+    def _get_uid_for_row(self, row):
+        queue_data = self.model.getQueue()
+        if 0 <= row < len(queue_data):
+            return queue_data[row].get("item_uid")
+        return None
+
+    def _move_items(self, **kwargs):
+        if not self.model:
+            return False
+        return self.model.move_queue_items(**kwargs)
 
     def _on_delete_cell_clicked(self, row):
         """Handle Delete button click for a specific row."""

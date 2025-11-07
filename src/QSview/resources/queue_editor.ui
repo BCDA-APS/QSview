@@ -223,7 +223,7 @@
        <number>0</number>
       </property>
       <item>
-       <widget class="QTableView" name="tableView">
+       <widget class="QueueTableView" name="tableView">
         <property name="acceptDrops">
          <bool>true</bool>
         </property>
@@ -305,6 +305,13 @@ QTableView::item:alternate:selected {
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QueueTableView</class>
+   <extends>QTableView</extends>
+   <header>QSview.widgets.queue_table_view</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

@@ -342,11 +342,14 @@ class QueueServerModel(QtCore.QObject):
             if response.get("success", False):
                 self._refresh_queue()
                 self.messageChanged.emit(f"Moved {len(uids)} item(s)")
+                return True
             else:
                 error_msg = response.get("msg", "Unknown error")
                 self.messageChanged.emit(f"Failed to move items: {error_msg}")
+                return False
         except Exception as e:
             self.messageChanged.emit(f"Error moving items: {e}")
+            return False
 
     def set_queue_mode(self, loop_mode, ignore_failures=None):
         """Set queue execution mode parameters."""
