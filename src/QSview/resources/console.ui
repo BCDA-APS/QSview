@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>610</width>
-    <height>190</height>
+    <height>162</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -142,7 +142,7 @@
         <property name="font">
          <font>
           <family>Menlo</family>
-          <pointsize>11</pointsize>
+          <pointsize>9</pointsize>
          </font>
         </property>
         <property name="lineWrapMode">
