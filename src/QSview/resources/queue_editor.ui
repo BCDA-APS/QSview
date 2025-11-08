@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>792</width>
-    <height>379</height>
+    <height>351</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -31,6 +31,9 @@
    </property>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="topMargin">
+      <number>20</number>
+     </property>
      <item>
       <widget class="QPushButton" name="addQueueButton">
        <property name="toolTip">
@@ -329,12 +332,12 @@ QTableView::item:alternate:selected {
                 <height>40</height>
                </size>
               </property>
+              <property name="text">
+               <string/>
+              </property>
               <property name="icon">
                <iconset>
                 <normaloff>icons/top.png</normaloff>icons/top.png</iconset>
-               </property>
-              <property name="text">
-               <string/>
               </property>
              </widget>
             </item>
@@ -346,12 +349,12 @@ QTableView::item:alternate:selected {
                 <height>40</height>
                </size>
               </property>
+              <property name="text">
+               <string/>
+              </property>
               <property name="icon">
                <iconset>
                 <normaloff>icons/up.png</normaloff>icons/up.png</iconset>
-               </property>
-              <property name="text">
-               <string/>
               </property>
              </widget>
             </item>
@@ -363,12 +366,12 @@ QTableView::item:alternate:selected {
                 <height>40</height>
                </size>
               </property>
+              <property name="text">
+               <string/>
+              </property>
               <property name="icon">
                <iconset>
                 <normaloff>icons/down.png</normaloff>icons/down.png</iconset>
-               </property>
-              <property name="text">
-               <string/>
               </property>
              </widget>
             </item>
@@ -380,12 +383,12 @@ QTableView::item:alternate:selected {
                 <height>40</height>
                </size>
               </property>
+              <property name="text">
+               <string/>
+              </property>
               <property name="icon">
                <iconset>
                 <normaloff>icons/bottom.png</normaloff>icons/bottom.png</iconset>
-               </property>
-              <property name="text">
-               <string/>
               </property>
              </widget>
             </item>
