@@ -140,6 +140,11 @@
              <height>16777215</height>
             </size>
            </property>
+           <property name="font">
+            <font>
+             <pointsize>13</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>Clear</string>
            </property>

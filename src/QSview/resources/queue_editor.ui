@@ -40,7 +40,7 @@
      <item>
       <widget class="QPushButton" name="addQueueButton">
        <property name="toolTip">
-        <string>Add plan to queue</string>
+        <string>Add a new plan to queue</string>
        </property>
        <property name="text">
         <string>Add new plan</string>
@@ -130,7 +130,7 @@
      <item>
       <widget class="QPushButton" name="duplicateButton">
        <property name="toolTip">
-        <string>Duplicate plan</string>
+        <string>Duplicate plan(s)</string>
        </property>
        <property name="text">
         <string/>
@@ -144,7 +144,7 @@
      <item>
       <widget class="QPushButton" name="deleteButton">
        <property name="toolTip">
-        <string>Delete plan</string>
+        <string>Delete plan(s)</string>
        </property>
        <property name="icon">
         <iconset>
@@ -167,6 +167,9 @@
      </item>
      <item>
       <widget class="QComboBox" name="modeComboBox">
+       <property name="toolTip">
+        <string>Queue execution mode</string>
+       </property>
        <property name="currentText">
         <string/>
        </property>
@@ -335,6 +338,9 @@ QTableView::item:alternate:selected {
                 <height>40</height>
                </size>
               </property>
+              <property name="toolTip">
+               <string>Move plan(s) to the top of the queue</string>
+              </property>
               <property name="text">
                <string/>
               </property>
@@ -351,6 +357,9 @@ QTableView::item:alternate:selected {
                 <width>40</width>
                 <height>40</height>
                </size>
+              </property>
+              <property name="toolTip">
+               <string>Move plan(s) up</string>
               </property>
               <property name="text">
                <string/>
@@ -369,6 +378,9 @@ QTableView::item:alternate:selected {
                 <height>40</height>
                </size>
               </property>
+              <property name="toolTip">
+               <string>Move plan(s) down</string>
+              </property>
               <property name="text">
                <string/>
               </property>
@@ -385,6 +397,9 @@ QTableView::item:alternate:selected {
                 <width>40</width>
                 <height>40</height>
                </size>
+              </property>
+              <property name="toolTip">
+               <string>Move plan(s) to the bottom of the queue</string>
               </property>
               <property name="text">
                <string/>
