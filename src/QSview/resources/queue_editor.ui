@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>792</width>
-    <height>351</height>
+    <height>323</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -284,7 +284,8 @@ QTableView::item:alternate:selected {
     color: white;
     border: none;
     outline: none;
-}</string>
+}
+</string>
            </property>
            <property name="autoScroll">
             <bool>false</bool>

@@ -1,22 +1,33 @@
-from PyQt5 import QtCore, QtGui, QtWidgets
+"""Custom table view for queue items with drag-and-drop helpers."""
+
 import json
+
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 
 class QueueTableView(QtWidgets.QTableView):
+    """Table view supporting UID-based drag-and-drop reordering."""
+
     mime_type = "application/x-qsqueue-uids"
 
     def __init__(self, parent=None):
+        """Initialise the table view and helper callbacks."""
+
         super().__init__(parent)
         self._get_uid_for_row = None
         self._move_items = None
         # leave drag/drop settings to the .ui if you like
 
     def set_helpers(self, *, get_uid_for_row, move_items):
+        """Inject callbacks for resolving row UIDs and executing moves."""
+
         self._get_uid_for_row = get_uid_for_row
         self._move_items = move_items
 
     # ---------- drag start -------------------------------------------------
-    def startDrag(self, supported_actions):
+    def startDrag(self, supported_actions):  # noqa: D401 - Qt signature
+        """Begin a drag operation containing the selected row UIDs."""
+
         if self._get_uid_for_row is None:
             return
         selected = self.selectionModel().selectedRows()
@@ -40,12 +51,16 @@ class QueueTableView(QtWidgets.QTableView):
         drag.exec_(QtCore.Qt.MoveAction)
 
     def dragEnterEvent(self, event):
+        """Accept drags that carry the queue UID mime type."""
+
         if event.mimeData().hasFormat(self.mime_type):
             event.acceptProposedAction()
         else:
             event.ignore()
 
     def dragMoveEvent(self, event):
+        """Allow mime payloads matching the queue UID type to move."""
+
         if event.mimeData().hasFormat(self.mime_type):
             event.acceptProposedAction()
         else:
@@ -53,6 +68,8 @@ class QueueTableView(QtWidgets.QTableView):
 
     # ---------- drop -------------------------------------------------------
     def dropEvent(self, event):
+        """Resolve the drop position and invoke the move callback."""
+
         if self._move_items is None or self._get_uid_for_row is None:
             event.ignore()
             return

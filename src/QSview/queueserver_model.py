@@ -38,6 +38,7 @@ class QueueServerModel(QtCore.QObject):
     messageChanged = QtCore.pyqtSignal(str)
     queueChanged = QtCore.pyqtSignal(object)
     queueNeedsUpdate = QtCore.pyqtSignal()
+    queueSelectionChanged = QtCore.pyqtSignal(list)
     historyChanged = QtCore.pyqtSignal(object)
     historyNeedsUpdate = QtCore.pyqtSignal()
 
@@ -61,6 +62,7 @@ class QueueServerModel(QtCore.QObject):
         self._history = {}
         self._history_uid = ""
         self._queue_uid = ""
+        self._selected_queue_item_uids = []
 
         # User info
         self._user_name = "GUI Client"
@@ -267,6 +269,20 @@ class QueueServerModel(QtCore.QObject):
     # Queue Methods
     # ========================================
 
+    @property
+    def selected_queue_item_uids(self):
+        """Return the cached list of selected queue item UIDs."""
+
+        return list(self._selected_queue_item_uids)
+
+    @selected_queue_item_uids.setter
+    def selected_queue_item_uids(self, uids):
+        """Store the current queue selection as a list of UIDs."""
+
+        uids = list(uids)
+        if uids != self._selected_queue_item_uids:
+            self._selected_queue_item_uids = uids
+
     def add_items_to_queue(self, items):
         """Add multiple items to the queue."""
         if not self._rem_api or not self._is_connected:
@@ -317,6 +333,12 @@ class QueueServerModel(QtCore.QObject):
             if response.get("success", False):
                 self._queue = response.get("items", [])
                 self.queueChanged.emit(self._queue)
+                QtCore.QTimer.singleShot(
+                    0,
+                    lambda uids=list(
+                        self._selected_queue_item_uids
+                    ): self.queueSelectionChanged.emit(uids),
+                )
         except Exception as e:
             self.messageChanged.emit(f"Error refreshing queue: {e}")
 
@@ -386,6 +408,12 @@ class QueueServerModel(QtCore.QObject):
                 self._queue = response.get("items", [])
                 # Emit signal for UI updates
                 self.queueChanged.emit(self._queue)
+                QtCore.QTimer.singleShot(
+                    0,
+                    lambda uids=list(
+                        self._selected_queue_item_uids
+                    ): self.queueSelectionChanged.emit(uids),
+                )
                 return self._queue
             else:
                 # Handle API error
