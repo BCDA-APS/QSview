@@ -300,6 +300,19 @@ class QueueServerModel(QtCore.QObject):
             # Add items to the back of the queue
             response = self._rem_api.item_add_batch(**request_params)
             if response.get("success", False):
+                try:
+                    original_uids = [
+                        item.get("item_uid") for item in items if item.get("item_uid")
+                    ]
+                    if original_uids:
+                        self.selected_queue_item_uids = original_uids
+                except Exception as e:
+                    # If extraction fails, clear selection (items added but can't select them)
+                    self.messageChanged.emit(
+                        f"Warning: Could not extract UIDs from add response: {e}"
+                    )
+                    self.selected_queue_item_uids = []
+
                 self._refresh_queue()
                 self.messageChanged.emit(f"Added {len(items)} item(s) to queue")
             else:
@@ -316,6 +329,8 @@ class QueueServerModel(QtCore.QObject):
         try:
             response = self._rem_api.item_remove_batch(uids=uids, ignore_missing=True)
             if response.get("success", False):
+                # Clear selection since items were deleted
+                self.selected_queue_item_uids = []
                 self._refresh_queue()
                 self.messageChanged.emit(f"Deleted {len(uids)} item(s) from queue")
             else:
@@ -333,14 +348,15 @@ class QueueServerModel(QtCore.QObject):
             if response.get("success", False):
                 self._queue = response.get("items", [])
                 self.queueChanged.emit(self._queue)
-                QtCore.QTimer.singleShot(
-                    0,
-                    lambda uids=list(
-                        self._selected_queue_item_uids
-                    ): self.queueSelectionChanged.emit(uids),
-                )
+                # Emit selection changed after queue update is processed
+                # Use QTimer to ensure queueChanged signal is processed first
+                QtCore.QTimer.singleShot(0, self._emit_selection_changed)
         except Exception as e:
             self.messageChanged.emit(f"Error refreshing queue: {e}")
+
+    def _emit_selection_changed(self):
+        """Emit selection changed signal with current UIDs."""
+        self.queueSelectionChanged.emit(self.selected_queue_item_uids)
 
     def move_queue_items(
         self, uids, pos_dest=None, before_uid=None, after_uid=None, reorder=True
@@ -362,6 +378,27 @@ class QueueServerModel(QtCore.QObject):
                 return False
             response = self._rem_api.item_move_batch(**kwargs)
             if response.get("success", False):
+                # Extract UIDs from moved items in response
+                try:
+                    moved_items = response.get("items", [])
+                    if moved_items:
+                        # Extract UIDs from moved items
+                        moved_uids = [
+                            item.get("item_uid")
+                            for item in moved_items
+                            if item.get("item_uid")
+                        ]
+                        if moved_uids:
+                            # Set selected UIDs before refreshing queue
+                            # This ensures queueSelectionChanged emits with correct UIDs
+                            self.selected_queue_item_uids = moved_uids
+                except Exception as e:
+                    # If extraction fails, fall back to original UIDs
+                    self.messageChanged.emit(
+                        f"Warning: Could not extract UIDs from move response: {e}"
+                    )
+                    self.selected_queue_item_uids = uids
+
                 self._refresh_queue()
                 self.messageChanged.emit(f"Moved {len(uids)} item(s)")
                 return True
@@ -408,12 +445,8 @@ class QueueServerModel(QtCore.QObject):
                 self._queue = response.get("items", [])
                 # Emit signal for UI updates
                 self.queueChanged.emit(self._queue)
-                QtCore.QTimer.singleShot(
-                    0,
-                    lambda uids=list(
-                        self._selected_queue_item_uids
-                    ): self.queueSelectionChanged.emit(uids),
-                )
+                # Emit selection changed after queue update is processed
+                QtCore.QTimer.singleShot(0, self._emit_selection_changed)
                 return self._queue
             else:
                 # Handle API error
@@ -487,6 +520,7 @@ class QueueServerModel(QtCore.QObject):
             if success:
                 self._history = []
                 self.historyChanged.emit([])
+                self.selected_queue_item_uids = []
                 self.messageChanged.emit("History cleared successfully")
             else:
                 self.messageChanged.emit(f"Failed to clear history: {msg}")

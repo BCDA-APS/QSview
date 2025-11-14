@@ -36,6 +36,10 @@ class QueueEditorWidget(QtWidgets.QWidget):
         self.current_model = self.dynamic_model
         self.tableView.setModel(self.current_model)
 
+        # Ensure table allows multiple row selection (ExtendedSelection allows non-contiguous)
+        self.tableView.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        # selectionBehavior is already set to SelectRows in UI file
+
         # Install event filter to handle ESC key for deselection
         self.tableView.installEventFilter(self)
 
@@ -128,6 +132,8 @@ class QueueEditorWidget(QtWidgets.QWidget):
 
         # Update the table view
         self.tableView.setModel(self.current_model)
+        # Ensure selection mode is maintained when switching models
+        self.tableView.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self._resize_table()
         self._setup_delegates()
 
@@ -309,6 +315,7 @@ class QueueEditorWidget(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(list)
     def _apply_selection_from_model(self, uids):
+        """Restore selection based on UIDs from model (like old GUI approach)."""
         table = getattr(self, "tableView", None)
         if table is None:
             return
@@ -317,20 +324,47 @@ class QueueEditorWidget(QtWidgets.QWidget):
         if qt_model is None or selection_model is None:
             return
 
+        if not uids:
+            # No UIDs to select, just clear selection
+            selection_model.clearSelection()
+            return
+
+        # Block signals during selection restoration (like old GUI blocks selection processing)
         selection_model.blockSignals(True)
         try:
+            # Clear existing selection
             selection_model.clearSelection()
 
+            # Map UIDs to row indices
             queue_data = self.model.getQueue()
             uid_to_row = {
                 item.get("item_uid"): row for row, item in enumerate(queue_data)
             }
 
-            selection = QtCore.QItemSelection()
+            # Find valid rows for the UIDs
+            rows = []
             for uid in uids:
                 row = uid_to_row.get(uid)
-                if row is None:
-                    continue
+                if row is not None:
+                    rows.append(row)
+
+            if not rows:
+                # No valid rows found
+                return
+
+            # Set current index to last row FIRST (like old GUI sets current cell first)
+            # Use NoUpdate flag to prevent it from affecting selection
+            last_row = rows[-1]
+            current_idx = qt_model.index(last_row, 0)
+            selection_model.setCurrentIndex(
+                current_idx,
+                QtCore.QItemSelectionModel.Current
+                | QtCore.QItemSelectionModel.NoUpdate,
+            )
+
+            # Now build selection for all rows
+            selection = QtCore.QItemSelection()
+            for row in rows:
                 top_left = qt_model.index(row, 0)
                 bottom_right = qt_model.index(row, qt_model.columnCount() - 1)
                 selection.merge(
@@ -338,6 +372,7 @@ class QueueEditorWidget(QtWidgets.QWidget):
                     QtCore.QItemSelectionModel.Select,
                 )
 
+            # Apply selection with ClearAndSelect | Rows
             if not selection.isEmpty():
                 selection_model.select(
                     selection,
@@ -345,14 +380,13 @@ class QueueEditorWidget(QtWidgets.QWidget):
                     | QtCore.QItemSelectionModel.Rows,
                 )
 
-            if uids:
-                first_row = uid_to_row.get(uids[0])
-                if first_row is not None:
-                    table.setCurrentIndex(qt_model.index(first_row, 0))
-                    QtCore.QTimer.singleShot(
-                        0, lambda: table.setFocus(QtCore.Qt.OtherFocusReason)
-                    )
+            # Scroll to make the first selected row visible
+            first_row = rows[0]
+            first_idx = qt_model.index(first_row, 0)
+            table.scrollTo(first_idx, QtWidgets.QAbstractItemView.PositionAtTop)
+
         finally:
+            # Unblock signals after selection is fully restored
             selection_model.blockSignals(False)
 
     def eventFilter(self, obj, event):
