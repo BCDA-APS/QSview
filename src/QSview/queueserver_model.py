@@ -470,6 +470,7 @@ class QueueServerModel(QtCore.QObject):
             if success:
                 self._queue = []
                 self.queueChanged.emit([])
+                self.selected_queue_item_uids = []
                 self.messageChanged.emit("Queue cleared successfully")
             else:
                 self.messageChanged.emit(f"Failed to clear queue: {msg}")
@@ -520,7 +521,6 @@ class QueueServerModel(QtCore.QObject):
             if success:
                 self._history = []
                 self.historyChanged.emit([])
-                self.selected_queue_item_uids = []
                 self.messageChanged.emit("History cleared successfully")
             else:
                 self.messageChanged.emit(f"Failed to clear history: {msg}")
