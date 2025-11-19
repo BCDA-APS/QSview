@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>610</width>
-    <height>190</height>
+    <height>162</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -64,6 +64,11 @@
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
           <widget class="QCheckBox" name="consoleAutoscrollCheckbox">
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>Autoscroll</string>
            </property>
@@ -90,6 +95,11 @@
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+            </font>
+           </property>
            <property name="text">
             <string>Max Lines</string>
            </property>
@@ -109,6 +119,11 @@
              <height>16777215</height>
             </size>
            </property>
+           <property name="font">
+            <font>
+             <pointsize>9</pointsize>
+            </font>
+           </property>
           </widget>
          </item>
          <item>
@@ -124,6 +139,11 @@
              <width>90</width>
              <height>16777215</height>
             </size>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>13</pointsize>
+            </font>
            </property>
            <property name="text">
             <string>Clear</string>
@@ -142,7 +162,7 @@
         <property name="font">
          <font>
           <family>Menlo</family>
-          <pointsize>11</pointsize>
+          <pointsize>9</pointsize>
          </font>
         </property>
         <property name="lineWrapMode">

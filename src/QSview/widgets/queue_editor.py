@@ -19,6 +19,10 @@ class QueueEditorWidget(QtWidgets.QWidget):
     def __init__(self, parent=None, model=None):
         super().__init__(parent)
         utils.myLoadUi(self.ui_file, baseinstance=self)
+        self.tableView.set_helpers(
+            get_uid_for_row=self._get_uid_for_row,
+            move_items=self._move_items,
+        )
         self.model = model
         self.setup()
 
@@ -32,6 +36,10 @@ class QueueEditorWidget(QtWidgets.QWidget):
         self.current_model = self.dynamic_model
         self.tableView.setModel(self.current_model)
 
+        # Ensure table allows multiple row selection (ExtendedSelection allows non-contiguous)
+        self.tableView.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        # selectionBehavior is already set to SelectRows in UI file
+
         # Install event filter to handle ESC key for deselection
         self.tableView.installEventFilter(self)
 
@@ -42,38 +50,39 @@ class QueueEditorWidget(QtWidgets.QWidget):
         # Connect to model signals
         self.model.queueChanged.connect(self._on_queue_changed)
         self.model.queueNeedsUpdate.connect(self._on_queue_needs_update)
+        self.model.queueSelectionChanged.connect(self._apply_selection_from_model)
 
         # Connect UI signals
         self.clearButton.clicked.connect(self._on_clear_clicked)
         self.duplicateButton.clicked.connect(self._on_copy_to_queue_clicked)
         self.deleteButton.clicked.connect(self._on_delete_clicked)
         self.viewCheckBox.stateChanged.connect(self._on_toggle_view)
+        self.topButton.clicked.connect(self._on_top_clicked)
+        self.upButton.clicked.connect(self._on_up_clicked)
+        self.downButton.clicked.connect(self._on_down_clicked)
+        self.bottomButton.clicked.connect(self._on_bottom_clicked)
 
         # Populate modeComboBox
         self.modeComboBox.addItems(["Default Mode", "Loop Mode", "Loop Until Failure"])
         self.modeComboBox.currentTextChanged.connect(self._on_mode_changed)
 
+        # Clear selection
+        self.model.selected_queue_item_uids = []
+        self.tableView.clearSelection()
+
     def _on_queue_changed(self, queue_data):
-        """Handle queue changed signal"""
-
-        # Save current scroll positions
-        # vsb = self.tableView.verticalScrollBar()
-        # hsb = self.tableView.horizontalScrollBar()
-        # v = vsb.value()
-        # h = hsb.value()
-
-        # Update model
+        """Handle queue change signal"""
         self.current_model.update_data(queue_data)
-
-        # Schedule resize, delegate and restore scroll position
         QTimer.singleShot(0, self._resize_table)
         QTimer.singleShot(10, self._setup_delegates)
-        # TODO: fix scroll bar flickering
-        # QTimer.singleShot(20, lambda: self._restore_scroll_position(v, h))
 
     def _on_queue_needs_update(self):
         """Handle queue update signal."""
         self.model.fetchQueue()
+
+    # =====================================
+    # Model Switching & Delegates
+    # =====================================
 
     def _setup_delegates(self):
         """Set up button delegates for Edit/Delete columns."""
@@ -123,8 +132,14 @@ class QueueEditorWidget(QtWidgets.QWidget):
 
         # Update the table view
         self.tableView.setModel(self.current_model)
+        # Ensure selection mode is maintained when switching models
+        self.tableView.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self._resize_table()
         self._setup_delegates()
+
+    # =====================================
+    # Toolbar Actions
+    # =====================================
 
     def _on_copy_to_queue_clicked(self):
         """Copy the selected plan(s) to the queue"""
@@ -184,7 +199,6 @@ class QueueEditorWidget(QtWidgets.QWidget):
 
         # Delete items using their UIDs
         if uids_to_delete:
-            print(uids_to_delete)
             self.model.delete_items_from_queue(uids_to_delete)
 
     def _on_mode_changed(self, text):
@@ -230,6 +244,163 @@ class QueueEditorWidget(QtWidgets.QWidget):
             if item_uid:
                 self.model.delete_items_from_queue([item_uid])
 
+    # =====================================
+    # Drag and Reorder Items
+    # =====================================
+
+    def _on_top_clicked(self):
+        """Handle top button clicked"""
+        uids, *_ = self._get_uids_for_selection()
+        if not uids:
+            return
+        self.model.selected_queue_item_uids = uids
+        self._move_items(uids=uids, pos_dest="front", reorder=True)
+
+    def _on_up_clicked(self):
+        """Handle up button clicked"""
+        uids, before_uid, _ = self._get_uids_for_selection()
+        if not uids or not before_uid:
+            return
+        self.model.selected_queue_item_uids = uids
+        self._move_items(uids=uids, before_uid=before_uid, reorder=True)
+
+    def _on_down_clicked(self):
+        """Handle down button clicked"""
+        uids, _, after_uid = self._get_uids_for_selection()
+        if not uids or not after_uid:
+            return
+        self.model.selected_queue_item_uids = uids
+        self._move_items(uids=uids, after_uid=after_uid, reorder=True)
+
+    def _on_bottom_clicked(self):
+        """Handle bottom button clicked"""
+        uids, *_ = self._get_uids_for_selection()
+        if not uids:
+            return
+        self.model.selected_queue_item_uids = uids
+        self._move_items(uids=uids, pos_dest="back", reorder=True)
+
+    def _get_uid_for_row(self, row):
+        queue_data = self.model.getQueue()
+        if 0 <= row < len(queue_data):
+            return queue_data[row].get("item_uid")
+        return None
+
+    def _move_items(self, **kwargs):
+        if not self.model:
+            return False
+        return self.model.move_queue_items(**kwargs)
+
+    def _get_uids_for_selection(self):
+        """Return the list of uids for the selected rows"""
+        table = getattr(self, "tableView", None)
+        if table is None:
+            return [], None, None
+        selection = table.selectionModel()
+        if not selection:
+            return [], None, None
+        rows = [index.row() for index in selection.selectedRows()]
+        uids = []
+        for row in rows:
+            uid = self._get_uid_for_row(row)
+            if uid:
+                uids.append(uid)
+        if not uids:
+            return [], None, None
+        before_row = rows[0] - 1
+        after_row = rows[-1] + 1
+        before_uid = self._get_uid_for_row(before_row) if before_row >= 0 else None
+        after_uid = self._get_uid_for_row(after_row)
+        return uids, before_uid, after_uid
+
+    @QtCore.pyqtSlot(list)
+    def _apply_selection_from_model(self, uids):
+        """Restore selection based on UIDs from model (like old GUI approach)."""
+        table = getattr(self, "tableView", None)
+        if table is None:
+            return
+        qt_model = table.model()
+        selection_model = table.selectionModel()
+        if qt_model is None or selection_model is None:
+            return
+
+        if not uids:
+            # No UIDs to select, just clear selection
+            selection_model.clearSelection()
+            return
+
+        # Block signals during selection restoration (like old GUI blocks selection processing)
+        selection_model.blockSignals(True)
+        try:
+            # Clear existing selection
+            selection_model.clearSelection()
+
+            # Map UIDs to row indices
+            queue_data = self.model.getQueue()
+            uid_to_row = {
+                item.get("item_uid"): row for row, item in enumerate(queue_data)
+            }
+
+            # Find valid rows for the UIDs
+            rows = []
+            for uid in uids:
+                row = uid_to_row.get(uid)
+                if row is not None:
+                    rows.append(row)
+
+            if not rows:
+                # No valid rows found
+                return
+
+            # Set current index to last row FIRST (like old GUI sets current cell first)
+            # Use NoUpdate flag to prevent it from affecting selection
+            last_row = rows[-1]
+            current_idx = qt_model.index(last_row, 0)
+            selection_model.setCurrentIndex(
+                current_idx,
+                QtCore.QItemSelectionModel.Current
+                | QtCore.QItemSelectionModel.NoUpdate,
+            )
+
+            # Now build selection for all rows
+            selection = QtCore.QItemSelection()
+            for row in rows:
+                top_left = qt_model.index(row, 0)
+                bottom_right = qt_model.index(row, qt_model.columnCount() - 1)
+                selection.merge(
+                    QtCore.QItemSelection(top_left, bottom_right),
+                    QtCore.QItemSelectionModel.Select,
+                )
+
+            # Apply selection with ClearAndSelect | Rows
+            if not selection.isEmpty():
+                selection_model.select(
+                    selection,
+                    QtCore.QItemSelectionModel.ClearAndSelect
+                    | QtCore.QItemSelectionModel.Rows,
+                )
+
+            # Scroll to make the first selected row visible
+            first_row = rows[0]
+            first_idx = qt_model.index(first_row, 0)
+            table.scrollTo(first_idx, QtWidgets.QAbstractItemView.PositionAtTop)
+
+        finally:
+            # Unblock signals after selection is fully restored
+            selection_model.blockSignals(False)
+
+    def eventFilter(self, obj, event):
+        """Handle ESC key to deselect rows in table view."""
+        if obj == self.tableView and event.type() == QtCore.QEvent.KeyPress:
+            if event.key() == QtCore.Qt.Key_Escape:
+                self.tableView.clearSelection()
+                return True
+        return super().eventFilter(obj, event)
+
+    # =====================================
+    # Layout and Sizing
+    # =====================================
+
     def _resize_table(self):
         """Resize table columns based on current model view type."""
         max_length = (
@@ -246,13 +417,9 @@ class QueueEditorWidget(QtWidgets.QWidget):
         vsb.setValue(min(v, vsb.maximum()))
         hsb.setValue(min(h, hsb.maximum()))
 
-    def eventFilter(self, obj, event):
-        """Handle ESC key to deselect rows in table view."""
-        if obj == self.tableView and event.type() == QtCore.QEvent.KeyPress:
-            if event.key() == QtCore.Qt.Key_Escape:
-                self.tableView.clearSelection()
-                return True
-        return super().eventFilter(obj, event)
+    # =====================================
+    # Status & Connection Updates
+    # =====================================
 
     def onConnectionChanged(self, is_connected, control_addr, info_addr):
         """Handle connection changes from QueueServerModel signal."""
