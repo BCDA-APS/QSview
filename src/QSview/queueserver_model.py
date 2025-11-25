@@ -64,6 +64,10 @@ class QueueServerModel(QtCore.QObject):
         self._queue_uid = ""
         self._selected_queue_item_uids = []
 
+        # Allowed plans cache
+        self._allowed_plans = {}
+        self._allowed_plans_uid = ""
+
         # User info
         self._user_name = "GUI Client"
         self._user_group = "primary"
@@ -135,6 +139,9 @@ class QueueServerModel(QtCore.QObject):
             # Emit initial status
             self.statusChanged.emit(True, self._status)
 
+            # Load allowed plans when connected
+            self.load_allowed_plans()
+
             return (True, None)
 
         except Exception as e:
@@ -169,6 +176,8 @@ class QueueServerModel(QtCore.QObject):
         self._status = {}
         self._queue = {}
         self._history = {}
+        self._allowed_plans = {}
+        self._allowed_plans_uid = ""
 
         # Emit disconnection
         self.connectionChanged.emit(False, self._control_addr, self._info_addr)
@@ -247,6 +256,12 @@ class QueueServerModel(QtCore.QObject):
             if new_queue_uid != self._queue_uid:
                 self._queue_uid = new_queue_uid
                 self.queueNeedsUpdate.emit()
+
+            # Check if the allowed plans UID has changed
+            new_plans_uid = self._status.get("plans_alowed_uid", "")
+            if new_plans_uid != self._allowed_plans_uid:
+                self._allowed_plans_uid = new_plans_uid
+                self.load_allowed_plans()
 
             # Emit signal
             self.statusChanged.emit(self._is_connected, self._status)
@@ -609,3 +624,109 @@ class QueueServerModel(QtCore.QObject):
         except Exception:
             # Timeout or other error - just return empty
             return None, ""
+
+    # ========================================
+    # Allowed Plans Methods
+    # ========================================
+
+    def load_allowed_plans(self):
+        """Load allowed plans from server."""
+        if not self._rem_api or not self._is_connected:
+            return
+
+        try:
+            result = self._rem_api.plans_allowed(user_group=self._user_group)
+            if result.get("success", False):
+                self._allowed_plans.clear()
+                self._allowed_plans.update(result.get("plans_allowed", {}))
+                self._allowed_plans_uid = result.get("plans_allowed_uid", "")
+            else:
+                error_msg = result.get("msg", "Unknown error")
+                self.messageChanged.emit(f"Failed to load allowed plans: {error_msg}")
+        except Exception as e:
+            self.messageChanged.emit(f"Error loading allowed plans: {e}")
+
+    def get_allowed_plan_names(self):
+        """Return list of allowed plan names.
+
+        Returns:
+            list: List of plan name strings, empty list if not connected
+        """
+        if not self._allowed_plans:
+            return []
+        return list(self._allowed_plans.keys())
+
+    def get_allowed_plan_parameters(self, *, name):
+        """Get parameters dict for a plan by name.
+
+        Args:
+            name (str): Name of the plan
+
+        Returns:
+            dict or None: Dictionary with plan parameters, or None if not found
+        """
+        return self._allowed_plans.get(name, None)
+
+    def queue_item_add(self, item):
+        """Add single item to queue.
+
+        Args:
+            item (dict): Queue item dictionary with 'name', 'item_type', 'args', 'kwargs'
+        """
+        self.add_items_to_queue([item])
+
+    def queue_item_update(self, item):
+        """Update existing queue item (requires item_uid).
+
+        Args:
+            item (dict): Complete queue item dictionary with:
+                - item_uid (str): Required - identifies which item to update
+                - name (str): Plan name
+                - item_type (str): "plan" or "instruction"
+                - args (list): Updated positional arguments
+                - kwargs (dict): Updated keyword arguments
+                - meta (dict, optional): Metadata if any
+        """
+        if not self._rem_api or not self._is_connected:
+            self.messageChanged.emit("Not connected to server")
+            return
+
+        if "item_uid" not in item:
+            self.messageChanged.emit("Cannot update item: missing item_uid")
+            return
+
+        try:
+            request_params = {
+                "item": item,
+                "user": self._user_name,
+                "user_group": self._user_group,
+                "replace": True,
+            }
+            response = self._rem_api.item_update(**request_params)
+            if response.get("success", False):
+                try:
+                    new_item_uid = response["item"]["item_uid"]
+                    # Optionally: select the updated item in the queue
+                    self.selected_queue_item_uids = [new_item_uid]
+                except KeyError:
+                    pass
+                self._refresh_queue()
+                self.messageChanged.emit("Plan updated successfully")
+            else:
+                error_msg = response.get("msg", "Unknown error")
+                self.messageChanged.emit(f"Failed to update plan: {error_msg}")
+        except Exception as e:
+            self.messageChanged.emit(f"Error updating plan: {e}")
+
+    def get_bound_item_arguments(self, item):
+        """Extract args and kwargs from item dict.
+
+        Args:
+            item (dict): Queue item dictionary
+
+        Returns:
+            tuple: (args_list, kwargs_dict)
+        """
+        args = item.get("args", [])
+        kwargs = item.get("kwargs", {})
+        return args, kwargs
