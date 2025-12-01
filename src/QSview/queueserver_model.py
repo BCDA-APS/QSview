@@ -112,7 +112,9 @@ class QueueServerModel(QtCore.QObject):
         try:
             # Create API connection
             self._rem_api = REManagerAPI(
-                zmq_control_addr=control_addr, zmq_info_addr=info_addr
+                zmq_control_addr=control_addr,
+                zmq_info_addr=info_addr,
+                timeout_recv=2.0,
             )
 
             # Test connection by getting status
@@ -511,6 +513,7 @@ class QueueServerModel(QtCore.QObject):
             if response.get("success", False):
                 # Store in cache
                 self._history = response.get("items", [])
+                print(f"DEBUG: Fetched {len(self._history)} history items")  # Add this
                 # Emit signal for UI updates
                 self.historyChanged.emit(self._history)
                 return self._history
@@ -706,7 +709,7 @@ class QueueServerModel(QtCore.QObject):
             if response.get("success", False):
                 try:
                     new_item_uid = response["item"]["item_uid"]
-                    # Optionally: select the updated item in the queue
+                    # Select the updated item in the queue
                     self.selected_queue_item_uids = [new_item_uid]
                 except KeyError:
                     pass

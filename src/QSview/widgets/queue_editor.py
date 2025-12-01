@@ -6,6 +6,7 @@ from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import QTimer
 
 from .. import utils
+from .plan_editor import PlanEditorDialog
 from .queue_button_delegate import ButtonDelegate
 from .queue_model import QueueTableModel
 from .queue_model_dynamic import DynamicQueueTableModel
@@ -61,6 +62,7 @@ class QueueEditorWidget(QtWidgets.QWidget):
         self.upButton.clicked.connect(self._on_up_clicked)
         self.downButton.clicked.connect(self._on_down_clicked)
         self.bottomButton.clicked.connect(self._on_bottom_clicked)
+        self.addQueueButton.clicked.connect(self._on_add_new_plan_clicked)
 
         # Populate modeComboBox
         self.modeComboBox.addItems(["Default Mode", "Loop Mode", "Loop Until Failure"])
@@ -170,6 +172,11 @@ class QueueEditorWidget(QtWidgets.QWidget):
         if selected_items:
             self.model.add_items_to_queue(selected_items)
 
+    def _on_add_new_plan_clicked(self):
+        """Open plan editor dialog for creating a new plan."""
+        dialog = PlanEditorDialog(parent=self, model=self.model)
+        dialog.exec_()  # Show dialog (modal)
+
     def _on_delete_clicked(self):
         """Delete the selected plan(s) from the queue"""
         if not self.model:
@@ -232,8 +239,10 @@ class QueueEditorWidget(QtWidgets.QWidget):
         queue_data = self.model.getQueue()
         if row < len(queue_data):
             queue_item = queue_data[row]
-            print(f"Edit clicked for row {row}: {queue_item.get('name')}")
-            # TODO: Edit logic goes here
+            # Open plan editor dialog in edit mode
+            dialog = PlanEditorDialog(parent=self, model=self.model)
+            dialog.open_for_editing(queue_item)
+            dialog.exec_()  # Show dialog (modal)
 
     def _on_delete_cell_clicked(self, row):
         """Handle Delete button click for a specific row."""
