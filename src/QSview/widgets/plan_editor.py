@@ -3,7 +3,8 @@ Plan Editor Dialog - for creating new plans and editing existing ones.
 """
 
 import inspect
-from PyQt5 import QtWidgets, QtCore
+
+from PyQt5 import QtCore, QtWidgets
 
 from .. import utils
 from .plan_parameter_table import PlanParameterTableModel
@@ -110,7 +111,9 @@ class PlanEditorDialog(QtWidgets.QDialog):
                 self.model.queue_item_add(item)
                 self.model.messageChanged.emit(f"Plan '{item['name']}' added to queue")
             # Delay closing to show success message
-            QtCore.QTimer.singleShot(500, self.accept)
+            # TODO: to be changed to self.accept if modal
+            # QtCore.QTimer.singleShot(500, self.accept)
+            QtCore.QTimer.singleShot(500, self.close)
         except Exception as e:
             self.model.messageChanged.emit(f"Error adding plan: {e}")
 

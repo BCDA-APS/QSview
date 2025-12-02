@@ -5,10 +5,10 @@ Plan Parameter Table Model - for displaying and editing plan parameters.
 import ast
 import copy
 import inspect
-from PyQt5 import QtCore, QtWidgets
-from PyQt5.QtCore import Qt
 
 from bluesky_queueserver import construct_parameters, format_text_descriptions
+from PyQt5 import QtCore
+from PyQt5.QtCore import Qt
 
 
 class PlanParameterTableModel(QtCore.QAbstractTableModel):
@@ -33,12 +33,16 @@ class PlanParameterTableModel(QtCore.QAbstractTableModel):
         self._plan_params_dict = None
         self._model = None
 
-    def columnCount(self, parent=QtCore.QModelIndex()):
+    def columnCount(self, parent=None):
         """Return number of columns."""
+        if parent is None:
+            parent = QtCore.QModelIndex()
         return len(self._column_headers)
 
-    def rowCount(self, parent=QtCore.QModelIndex()):
+    def rowCount(self, parent=None):
         """Return number of rows."""
+        if parent is None:
+            parent = QtCore.QModelIndex()
         return len(self._params)
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):

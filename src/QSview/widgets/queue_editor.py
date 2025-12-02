@@ -25,6 +25,7 @@ class QueueEditorWidget(QtWidgets.QWidget):
             move_items=self._move_items,
         )
         self.model = model
+        self._plan_editor_dialog = None
         self.setup()
 
     def setup(self):
@@ -174,8 +175,19 @@ class QueueEditorWidget(QtWidgets.QWidget):
 
     def _on_add_new_plan_clicked(self):
         """Open plan editor dialog for creating a new plan."""
-        dialog = PlanEditorDialog(parent=self, model=self.model)
-        dialog.exec_()  # Show dialog (modal)
+        # TODO: decide if we want it modal or not?
+        # dialog = PlanEditorDialog(parent=self, model=self.model)
+        # dialog.exec_()  # Show dialog (modal)
+        if self._plan_editor_dialog is None:
+            # Create new dialog
+            self._plan_editor_dialog = PlanEditorDialog(parent=self, model=self.model)
+            self._plan_editor_dialog.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+            self._plan_editor_dialog.destroyed.connect(self._on_plan_editor_destroyed)
+            self._plan_editor_dialog.show()
+        else:
+            # Bring existing dialog to front
+            self._plan_editor_dialog.raise_()
+            self._plan_editor_dialog.activateWindow()
 
     def _on_delete_clicked(self):
         """Delete the selected plan(s) from the queue"""
@@ -239,10 +251,37 @@ class QueueEditorWidget(QtWidgets.QWidget):
         queue_data = self.model.getQueue()
         if row < len(queue_data):
             queue_item = queue_data[row]
+
+            if queue_item.get("item_type") != "plan":
+                self.model.messageChanged.emit("Can only edit plans, not instructions")
+                return
+            # TODO: decide if we want it modal or not?
             # Open plan editor dialog in edit mode
-            dialog = PlanEditorDialog(parent=self, model=self.model)
-            dialog.open_for_editing(queue_item)
-            dialog.exec_()  # Show dialog (modal)
+            # dialog = PlanEditorDialog(parent=self, model=self.model)
+            # dialog.open_for_editing(queue_item)
+            # dialog.exec_()  # Show dialog (modal)
+
+            if self._plan_editor_dialog is None:
+                # Create new dialog
+                self._plan_editor_dialog = PlanEditorDialog(
+                    parent=self, model=self.model
+                )
+                self._plan_editor_dialog.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+                self._plan_editor_dialog.destroyed.connect(
+                    self._on_plan_editor_destroyed
+                )
+                self._plan_editor_dialog.show()
+
+            # Load the item (whether new or existing dialog)
+            self._plan_editor_dialog.open_for_editing(queue_item)
+
+            # Bring to front
+            self._plan_editor_dialog.raise_()
+            self._plan_editor_dialog.activateWindow()
+
+    def _on_plan_editor_destroyed(self):
+        """Handle plan editor dialog being destroyed."""
+        self._plan_editor_dialog = None
 
     def _on_delete_cell_clicked(self, row):
         """Handle Delete button click for a specific row."""
