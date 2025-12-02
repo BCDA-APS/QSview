@@ -175,9 +175,13 @@ class PlanEditorDialog(QtWidgets.QDialog):
         )
 
         # Set plan in combobox (if it exists)
+        # This would trigger on_plan_selected() which clears the parameters
+        # => block signal
         index = self.planSelectBox.findText(plan_name)
         if index >= 0:
+            self.planSelectBox.blockSignals(True)
             self.planSelectBox.setCurrentIndex(index)
+            self.planSelectBox.blockSignals(False)
 
         # Update button states (editing mode)
         self.update_button_states()
