@@ -44,6 +44,9 @@ class PlanEditorDialog(QtWidgets.QDialog):
         # Connect table model dataChanged signal to update button states
         self.table_model.dataChanged.connect(self.update_button_states)
 
+        # Clear selection after editing to keep invalid values visible
+        self.table_model.dataChanged.connect(self._clear_selection_after_edit)
+
         # Initial button states
         self.update_button_states()
         self.saveButton.setVisible(False)
@@ -188,3 +191,9 @@ class PlanEditorDialog(QtWidgets.QDialog):
 
         # Optionally update window title
         self.setWindowTitle(f"Edit Plan: {plan_name}")
+
+    def _clear_selection_after_edit(self, top_left, bottom_right):
+        """Clear selection after cell is edited to keep invalid values visible."""
+        # Only clear if it's the value column (column 2)
+        if top_left.column() == 2:
+            self.tableView.clearSelection()

@@ -9,6 +9,7 @@ import inspect
 from bluesky_queueserver import construct_parameters, format_text_descriptions
 from PyQt5 import QtCore
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QColor
 
 
 class PlanParameterTableModel(QtCore.QAbstractTableModel):
@@ -78,6 +79,10 @@ class PlanParameterTableModel(QtCore.QAbstractTableModel):
                 return param_name
             elif col == 2:
                 # Column 2: Parameter value
+                if param.get("is_invalid", False):
+                    # Show invalid string in red
+                    return param.get("invalid_value_str", "")
+
                 value = param.get("value", inspect.Parameter.empty)
                 default = param.get("default", inspect.Parameter.empty)
                 is_value_set = param.get("is_value_set", False)
@@ -99,6 +104,17 @@ class PlanParameterTableModel(QtCore.QAbstractTableModel):
                     display_str += " (default)"
 
                 return display_str
+
+        elif role == Qt.ForegroundRole:
+            # Make default values grey, invalid values red
+            if col == 2:
+                if param.get("is_invalid", False):
+                    return QColor(255, 0, 0)  # Red for invalid values
+
+                is_value_set = param.get("is_value_set", False)
+                if not is_value_set:
+                    return QColor(128, 128, 128)  # Grey color for default values
+            return None  # Use default color for other cases
 
         elif role == Qt.ToolTipRole:
             # Show parameter description as tooltip
@@ -162,17 +178,22 @@ class PlanParameterTableModel(QtCore.QAbstractTableModel):
                     param["value"] = param.get("default", inspect.Parameter.empty)
                     param["is_value_set"] = False
                 else:
-                    # Evaluate as Python literal (handles strings, numbers, lists, etc.)
+                    # Evaluate as Python literal
                     evaluated_value = ast.literal_eval(value_str)
                     param["value"] = evaluated_value
                     param["is_value_set"] = True
+                    param["is_invalid"] = False
+                    param.pop("invalid_value_str", None)
 
                 # Emit signal that data changed
                 self.dataChanged.emit(index, index, [role])
                 return True
             except (ValueError, SyntaxError):
-                # Invalid value - don't update, but still return True
-                # (validation will be handled separately)
+                # Invalid value - mark as invalid and store the invalid string
+                param["is_invalid"] = True
+                param["invalid_value_str"] = value_str
+                # Emit signal that data changed (to update color)
+                self.dataChanged.emit(index, index, [role])
                 return True
 
         return False
@@ -284,6 +305,7 @@ class PlanParameterTableModel(QtCore.QAbstractTableModel):
                     "is_optional": is_optional,
                     "parameter": p,
                     "description": description,
+                    "is_invalid": False,
                 }
             )
 
