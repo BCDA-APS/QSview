@@ -49,7 +49,19 @@ class PlanEditorDialog(QtWidgets.QDialog):
 
         # Initial button states
         self.update_button_states()
-        self.addPlanButton.setCheckable(True)
+        # self.addPlanButton.setCheckable(True)
+
+        # Style Add Plan button - blue when enabled, default when disabled
+        self.addPlanButton.setStyleSheet(
+            """
+            QPushButton:enabled {
+                background-color: #2196F3;
+                color: white;
+                padding: 2px 12px;
+                border-radius: 4px;
+            }
+        """
+        )
 
         # Populate plan selection if model is available
         if self.model:
@@ -139,7 +151,7 @@ class PlanEditorDialog(QtWidgets.QDialog):
                         break
 
         is_valid = has_plan and all_required_set
-        self.addPlanButton.setChecked(is_valid)
+        # self.addPlanButton.setChecked(is_valid)
         self.addPlanButton.setEnabled(is_valid)
 
     def open_for_editing(self, item_dict):
