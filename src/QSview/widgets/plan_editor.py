@@ -49,7 +49,7 @@ class PlanEditorDialog(QtWidgets.QDialog):
 
         # Initial button states
         self.update_button_states()
-        self.saveButton.setVisible(False)
+        self.addPlanButton.setCheckable(True)
 
         # Populate plan selection if model is available
         if self.model:
@@ -114,8 +114,6 @@ class PlanEditorDialog(QtWidgets.QDialog):
                 self.model.queue_item_add(item)
                 self.model.messageChanged.emit(f"Plan '{item['name']}' added to queue")
             # Delay closing to show success message
-            # TODO: to be changed to self.accept if modal
-            # QtCore.QTimer.singleShot(500, self.accept)
             QtCore.QTimer.singleShot(500, self.close)
         except Exception as e:
             self.model.messageChanged.emit(f"Error adding plan: {e}")
@@ -141,7 +139,7 @@ class PlanEditorDialog(QtWidgets.QDialog):
                         break
 
         is_valid = has_plan and all_required_set
-
+        self.addPlanButton.setChecked(is_valid)
         self.addPlanButton.setEnabled(is_valid)
 
     def open_for_editing(self, item_dict):
