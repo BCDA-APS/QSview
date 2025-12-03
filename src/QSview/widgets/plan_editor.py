@@ -50,15 +50,15 @@ class PlanEditorDialog(QtWidgets.QDialog):
         # Initial button states
         self.update_button_states()
         self.addPlanButton.setText("Add Plan")
-        self.addPlanButton.setStyleSheet(
-            """
-            QPushButton:enabled {
-                background-color: #2196F3;
-                color: white;
-                border-radius: 2px;
-            }
-        """
-        )
+        # self.addPlanButton.setStyleSheet(
+        #     """
+        #     QPushButton:enabled {
+        #         background-color: #2196F3;
+        #         color: white;
+        #         border-radius: 2px;
+        #     }
+        # """
+        # )
 
         # Populate plan selection if model is available
         if self.model:
@@ -198,7 +198,7 @@ class PlanEditorDialog(QtWidgets.QDialog):
         self.addPlanButton.setText("Update Plan")
         self.update_button_states()
 
-        # Optionally update window title
+        # Update window title
         self.setWindowTitle(f"Edit Plan: {plan_name}")
 
     def _clear_selection_after_edit(self, top_left, bottom_right):
