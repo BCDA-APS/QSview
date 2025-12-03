@@ -76,6 +76,12 @@
          </property>
          <item>
           <widget class="QCheckBox" name="consoleAutoscrollCheckbox">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>20</height>
+            </size>
+           </property>
            <property name="font">
             <font>
              <pointsize>11</pointsize>
@@ -107,6 +113,12 @@
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>20</height>
+            </size>
+           </property>
            <property name="font">
             <font>
              <pointsize>11</pointsize>
@@ -128,7 +140,7 @@
            <property name="maximumSize">
             <size>
              <width>70</width>
-             <height>16777215</height>
+             <height>35</height>
             </size>
            </property>
            <property name="font">
@@ -149,7 +161,7 @@
            <property name="maximumSize">
             <size>
              <width>90</width>
-             <height>16777215</height>
+             <height>35</height>
             </size>
            </property>
            <property name="font">
