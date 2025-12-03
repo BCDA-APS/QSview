@@ -37,7 +37,7 @@
      <property name="font">
       <font>
        <family>Menlo</family>
-       <pointsize>11</pointsize>
+       <pointsize>9</pointsize>
       </font>
      </property>
      <property name="lineWrapMode">
