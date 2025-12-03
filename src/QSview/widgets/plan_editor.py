@@ -49,9 +49,7 @@ class PlanEditorDialog(QtWidgets.QDialog):
 
         # Initial button states
         self.update_button_states()
-        # self.addPlanButton.setCheckable(True)
-
-        # Style Add Plan button - blue when enabled, default when disabled
+        self.addPlanButton.setText("Add Plan")
         self.addPlanButton.setStyleSheet(
             """
             QPushButton:enabled {
@@ -102,6 +100,7 @@ class PlanEditorDialog(QtWidgets.QDialog):
 
         # Update button states
         self._editing_item = None
+        self.addPlanButton.setText("Add Plan")
         self.update_button_states()
 
     def on_add_plan(self):
@@ -150,7 +149,7 @@ class PlanEditorDialog(QtWidgets.QDialog):
                         break
 
         is_valid = has_plan and all_required_set
-        # self.addPlanButton.setChecked(is_valid)
+
         self.addPlanButton.setEnabled(is_valid)
 
     def open_for_editing(self, item_dict):
@@ -196,6 +195,7 @@ class PlanEditorDialog(QtWidgets.QDialog):
             self.planSelectBox.blockSignals(False)
 
         # Update button states (editing mode)
+        self.addPlanButton.setText("Update Plan")
         self.update_button_states()
 
         # Optionally update window title
