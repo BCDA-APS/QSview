@@ -57,8 +57,7 @@ class PlanEditorDialog(QtWidgets.QDialog):
             QPushButton:enabled {
                 background-color: #2196F3;
                 color: white;
-                padding: 2px 12px;
-                border-radius: 4px;
+                border-radius: 2px;
             }
         """
         )
