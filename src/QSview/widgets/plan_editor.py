@@ -50,15 +50,6 @@ class PlanEditorDialog(QtWidgets.QDialog):
         # Initial button states
         self.update_button_states()
         self.addPlanButton.setText("Add Plan")
-        # self.addPlanButton.setStyleSheet(
-        #     """
-        #     QPushButton:enabled {
-        #         background-color: #2196F3;
-        #         color: white;
-        #         border-radius: 2px;
-        #     }
-        # """
-        # )
 
         # Populate plan selection if model is available
         if self.model:
@@ -117,15 +108,34 @@ class PlanEditorDialog(QtWidgets.QDialog):
         try:
             if self._editing_item:
                 # Editing existing plan - update it
-                self.model.queue_item_update(item)
-                self.model.messageChanged.emit(f"Plan '{item['name']}' updated")
+                success = self.model.queue_item_update(item)
+                if success:
+                    self.model.messageChanged.emit(f"Plan '{item['name']}' updated")
+                    # Delay closing Qdialog
+                    QtCore.QTimer.singleShot(500, self.close)
+                else:
+                    QtWidgets.QMessageBox.critical(
+                        self,
+                        "Update Failed",
+                        f"Error updating plan '{item['name']} \n\nVerify parameter types match the plan requirements.",
+                    )
             else:
                 # Creating new plan - add it
-                self.model.queue_item_add(item)
-                self.model.messageChanged.emit(f"Plan '{item['name']}' added to queue")
-            # Delay closing to show success message
-            QtCore.QTimer.singleShot(500, self.close)
+                success = self.model.queue_item_add(item)
+                if success:
+                    self.model.messageChanged.emit(
+                        f"Plan '{item['name']}' added to queue"
+                    )
+                    # Delay closing Qdialog
+                    QtCore.QTimer.singleShot(500, self.close)
+                else:
+                    QtWidgets.QMessageBox.critical(
+                        self,
+                        "Add Failed",
+                        f"Error adding plan '{item['name']}' to queue  \n\nVerify parameter types match the plan requirements.",
+                    )
         except Exception as e:
+            QtWidgets.QMessageBox.critical(self, "Error", f"Error adding plan: {e}")
             self.model.messageChanged.emit(f"Error adding plan: {e}")
 
     def on_reset(self):

@@ -304,7 +304,7 @@ class QueueServerModel(QtCore.QObject):
         """Add multiple items to the queue."""
         if not self._rem_api or not self._is_connected:
             self.messageChanged.emit("Not connected to server")
-            return
+            return False
 
         try:
             # Add user info to each item
@@ -332,11 +332,14 @@ class QueueServerModel(QtCore.QObject):
 
                 self._refresh_queue()
                 self.messageChanged.emit(f"Added {len(items)} item(s) to queue")
+                return True
             else:
                 error_msg = response.get("msg", "Unknown error")
                 self.messageChanged.emit(f"Failed to add items to queue: {error_msg}")
+                return False
         except Exception as e:
             self.messageChanged.emit(f"Error adding items to queue: {e}")
+            return False
 
     def delete_items_from_queue(self, uids):
         """Delete multiple items from the queue."""
@@ -676,7 +679,7 @@ class QueueServerModel(QtCore.QObject):
         Args:
             item (dict): Queue item dictionary with 'name', 'item_type', 'args', 'kwargs'
         """
-        self.add_items_to_queue([item])
+        return self.add_items_to_queue([item])
 
     def queue_item_update(self, item):
         """Update existing queue item (requires item_uid).
@@ -692,11 +695,11 @@ class QueueServerModel(QtCore.QObject):
         """
         if not self._rem_api or not self._is_connected:
             self.messageChanged.emit("Not connected to server")
-            return
+            return False
 
         if "item_uid" not in item:
             self.messageChanged.emit("Cannot update item: missing item_uid")
-            return
+            return False
 
         try:
             request_params = {
@@ -715,11 +718,14 @@ class QueueServerModel(QtCore.QObject):
                     pass
                 self._refresh_queue()
                 self.messageChanged.emit("Plan updated successfully")
+                return True
             else:
                 error_msg = response.get("msg", "Unknown error")
                 self.messageChanged.emit(f"Failed to update plan: {error_msg}")
+                return False
         except Exception as e:
             self.messageChanged.emit(f"Error updating plan: {e}")
+            return False
 
     def get_bound_item_arguments(self, item):
         """Extract args and kwargs from item dict.

@@ -175,19 +175,16 @@ class QueueEditorWidget(QtWidgets.QWidget):
 
     def _on_add_new_plan_clicked(self):
         """Open plan editor dialog for creating a new plan."""
-        # TODO: decide if we want it modal or not?
-        # dialog = PlanEditorDialog(parent=self, model=self.model)
-        # dialog.exec_()  # Show dialog (modal)
-        if self._plan_editor_dialog is None:
-            # Create new dialog
-            self._plan_editor_dialog = PlanEditorDialog(parent=self, model=self.model)
-            self._plan_editor_dialog.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-            self._plan_editor_dialog.destroyed.connect(self._on_plan_editor_destroyed)
-            self._plan_editor_dialog.show()
-        else:
-            # Bring existing dialog to front
-            self._plan_editor_dialog.raise_()
-            self._plan_editor_dialog.activateWindow()
+        # Always destroy existing dialog if it exists and create a new one
+        if self._plan_editor_dialog is not None:
+            self._plan_editor_dialog.close()
+            self._plan_editor_dialog = None
+
+        # Create new dialog
+        self._plan_editor_dialog = PlanEditorDialog(parent=self, model=self.model)
+        self._plan_editor_dialog.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+        self._plan_editor_dialog.destroyed.connect(self._on_plan_editor_destroyed)
+        self._plan_editor_dialog.show()
 
     def _on_delete_clicked(self):
         """Delete the selected plan(s) from the queue"""
@@ -255,11 +252,6 @@ class QueueEditorWidget(QtWidgets.QWidget):
             if queue_item.get("item_type") != "plan":
                 self.model.messageChanged.emit("Can only edit plans, not instructions")
                 return
-            # TODO: decide if we want it modal or not?
-            # Open plan editor dialog in edit mode
-            # dialog = PlanEditorDialog(parent=self, model=self.model)
-            # dialog.open_for_editing(queue_item)
-            # dialog.exec_()  # Show dialog (modal)
 
             if self._plan_editor_dialog is None:
                 # Create new dialog
