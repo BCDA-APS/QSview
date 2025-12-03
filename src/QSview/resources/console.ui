@@ -37,7 +37,6 @@
      <property name="font">
       <font>
        <family>Menlo</family>
-       <pointsize>9</pointsize>
       </font>
      </property>
      <property name="lineWrapMode">
@@ -61,11 +60,6 @@
       </property>
       <item>
        <widget class="QWidget" name="widget" native="true">
-        <property name="font">
-         <font>
-          <pointsize>9</pointsize>
-         </font>
-        </property>
         <layout class="QHBoxLayout" name="horizontalLayout">
          <property name="leftMargin">
           <number>12</number>
@@ -86,11 +80,6 @@
              <width>16777215</width>
              <height>20</height>
             </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>11</pointsize>
-            </font>
            </property>
            <property name="text">
             <string>Autoscroll</string>
@@ -124,11 +113,6 @@
              <height>20</height>
             </size>
            </property>
-           <property name="font">
-            <font>
-             <pointsize>11</pointsize>
-            </font>
-           </property>
            <property name="text">
             <string>Max Lines</string>
            </property>
@@ -148,11 +132,6 @@
              <height>35</height>
             </size>
            </property>
-           <property name="font">
-            <font>
-             <pointsize>9</pointsize>
-            </font>
-           </property>
           </widget>
          </item>
          <item>
@@ -168,11 +147,6 @@
              <width>90</width>
              <height>35</height>
             </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>13</pointsize>
-            </font>
            </property>
            <property name="text">
             <string>Clear</string>
@@ -191,7 +165,6 @@
         <property name="font">
          <font>
           <family>Menlo</family>
-          <pointsize>9</pointsize>
          </font>
         </property>
         <property name="lineWrapMode">
