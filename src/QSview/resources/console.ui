@@ -61,6 +61,11 @@
       </property>
       <item>
        <widget class="QWidget" name="widget" native="true">
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+         </font>
+        </property>
         <layout class="QHBoxLayout" name="horizontalLayout">
          <property name="leftMargin">
           <number>5</number>
