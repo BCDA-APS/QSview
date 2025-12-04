@@ -9,7 +9,7 @@ import inspect
 from bluesky_queueserver import construct_parameters, format_text_descriptions
 from PyQt5 import QtCore
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QColor, QFont
 
 
 class PlanParameterTableModel(QtCore.QAbstractTableModel):
@@ -109,15 +109,37 @@ class PlanParameterTableModel(QtCore.QAbstractTableModel):
                 return display_str
 
         elif role == Qt.ForegroundRole:
-            # Make default values grey, invalid values red
-            if col == 1:
+            if col == 0:
+                # Make invalid red and missing required value blue
                 if param.get("is_invalid", False):
-                    return QColor(255, 0, 0)  # Red for invalid values
+                    return QColor(255, 0, 0)
+                value = param.get("value", inspect.Parameter.empty)
+                is_optional = param.get("is_optional", False)
+                if value == inspect.Parameter.empty and not is_optional:
+                    return QColor(0, 0, 255)
+                return None  # Use default color for other cases
+            if col == 1:
+                # Make default values grey, invalid values red
+                if param.get("is_invalid", False):
+                    return QColor(255, 0, 0)
+                if not param.get("is_value_set", False):
+                    return QColor(128, 128, 128)
+                return None  # Use default color for other cases
 
+        elif role == Qt.FontRole:
+            if col == 0:
+                # Make edited parameters bold
+                value = param.get("value", inspect.Parameter.empty)
+                is_optional = param.get("is_optional", False)
                 is_value_set = param.get("is_value_set", False)
-                if not is_value_set:
-                    return QColor(128, 128, 128)  # Grey color for default values
-            return None  # Use default color for other cases
+                if (value != inspect.Parameter.empty and not is_optional) or (
+                    is_value_set and is_optional
+                ):
+                    font = QFont()
+                    font.setBold(True)
+                    return font
+
+            return None
 
         elif role == Qt.ToolTipRole:
             # Show parameter description as tooltip
