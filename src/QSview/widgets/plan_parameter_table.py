@@ -19,13 +19,16 @@ class PlanParameterTableModel(QtCore.QAbstractTableModel):
         super().__init__(parent)
 
         # Column headers
-        self._column_headers = ["Parameter", "", "Value"]
+        self._column_headers = ["Parameter", "Value"]
 
         # Store parameters as list of dicts
         self._params = []
 
         # Store original item for reset functionality
         self._original_item = None
+
+        # Store initial params state for new plans (when item_dict=None)
+        self._initial_params = None
 
         # Store current plan name
         self._plan_name = ""
@@ -77,8 +80,8 @@ class PlanParameterTableModel(QtCore.QAbstractTableModel):
                     elif param_obj.kind == inspect.Parameter.VAR_KEYWORD:
                         return f"**{param_name}"
                 return param_name
-            elif col == 2:
-                # Column 2: Parameter value
+            elif col == 1:
+                # Column 1: Parameter value
                 if param.get("is_invalid", False):
                     # Show invalid string in red
                     return param.get("invalid_value_str", "")
@@ -107,7 +110,7 @@ class PlanParameterTableModel(QtCore.QAbstractTableModel):
 
         elif role == Qt.ForegroundRole:
             # Make default values grey, invalid values red
-            if col == 2:
+            if col == 1:
                 if param.get("is_invalid", False):
                     return QColor(255, 0, 0)  # Red for invalid values
 
@@ -118,20 +121,7 @@ class PlanParameterTableModel(QtCore.QAbstractTableModel):
 
         elif role == Qt.ToolTipRole:
             # Show parameter description as tooltip
-            if col == 0 or col == 2:
-                return param.get("description", "")
-
-        elif role == Qt.CheckStateRole and col == 1:
-            # Column 1: Checkbox state
-            is_value_set = param.get("is_value_set", False)
-            is_optional = param.get("is_optional", False)
-
-            if not is_optional:
-                # Required parameter - checked and disabled
-                return Qt.Checked
-            else:
-                # Optional parameter - checked if value is set
-                return Qt.Checked if is_value_set else Qt.Unchecked
+            return param.get("description", "")
 
         return None
 
@@ -148,27 +138,8 @@ class PlanParameterTableModel(QtCore.QAbstractTableModel):
 
         param = self._params[row]
 
-        if col == 1 and role == Qt.CheckStateRole:
-            # Column 1: Toggle checkbox (include/exclude optional parameter)
-            # value is 0 (Qt.checked) or 2 (Qt.unchecked)
-            is_checked = value == Qt.Checked
-            is_optional = param.get("is_optional", False)
-
-            if is_optional:
-                param["is_value_set"] = is_checked
-                if is_checked and param.get("value") == inspect.Parameter.empty:
-                    # Set to default value if checking an optional parameter
-                    param["value"] = param.get("default", inspect.Parameter.empty)
-                elif not is_checked:
-                    # Clear value if unchecking
-                    param["value"] = inspect.Parameter.empty
-
-                # Emit signal that data changed
-                self.dataChanged.emit(index, index, [role])
-                return True
-
-        elif col == 2 and role == Qt.EditRole:
-            # Column 2: Edit parameter value
+        if col == 1 and role == Qt.EditRole:
+            # Column 1: Edit parameter value
             value_str = str(value).strip()
 
             # Try to evaluate the value (parse Python literal)
@@ -209,7 +180,6 @@ class PlanParameterTableModel(QtCore.QAbstractTableModel):
         if row >= len(self._params):
             return Qt.NoItemFlags
 
-        param = self._params[row]
         base_flags = Qt.ItemIsSelectable  # Base: can be selected
 
         if col == 0:
@@ -217,26 +187,8 @@ class PlanParameterTableModel(QtCore.QAbstractTableModel):
             return base_flags | Qt.ItemIsEnabled
 
         elif col == 1:
-            # Column 1: Checkbox
-            is_optional = param.get("is_optional", False)
-            if is_optional:
-                # Optional: enabled and checkable
-                return base_flags | Qt.ItemIsEnabled | Qt.ItemIsUserCheckable
-            else:
-                # Required: checkable but NOT enabled (appears disabled/grayed)
-                return base_flags | Qt.ItemIsUserCheckable
-
-        elif col == 2:
-            # Column 2: Value - editable if value is set or parameter is required
-            is_value_set = param.get("is_value_set", False)
-            is_optional = param.get("is_optional", False)
-
-            if is_value_set or not is_optional:
-                # Editable if: value is set, OR parameter is required
-                return base_flags | Qt.ItemIsEnabled | Qt.ItemIsEditable
-            else:
-                # Not editable if optional and not set
-                return base_flags | Qt.ItemIsEnabled
+            # Column 1: Value - enabled and editable
+            return base_flags | Qt.ItemIsEnabled | Qt.ItemIsEditable
 
         return base_flags
 
@@ -308,6 +260,10 @@ class PlanParameterTableModel(QtCore.QAbstractTableModel):
                     "is_invalid": False,
                 }
             )
+
+        # Store initial state for new plans (when item_dict is None)
+        if item_dict is None:
+            self._initial_params = copy.deepcopy(self._params)
 
         self.endResetModel()  # Tell view we're done changing
 
@@ -400,16 +356,25 @@ class PlanParameterTableModel(QtCore.QAbstractTableModel):
         return item
 
     def reset_item(self):
-        """Reset parameters to original values from _original_item."""
-        if not self._original_item or not self._plan_params_dict or not self._model:
-            # No original item to reset to, or missing plan data
+        """Reset parameters to original values.
+
+        - If editing existing plan: resets to _original_item values
+        - If creating new plan: resets to initial state (required empty, optional with defaults)
+        """
+        if not self._plan_params_dict or not self._model:
+            # Missing plan data
             return
 
-        # Rebuild _params from original item by calling set_plan again
-        # This restores the exact original values
-        self.set_plan(
-            plan_name=self._plan_name,
-            plan_params_dict=self._plan_params_dict,
-            item_dict=self._original_item,
-            model=self._model,
-        )
+        if self._original_item:
+            # Editing existing plan - reset to original item values
+            self.set_plan(
+                plan_name=self._plan_name,
+                plan_params_dict=self._plan_params_dict,
+                item_dict=self._original_item,
+                model=self._model,
+            )
+        elif self._initial_params:
+            # Creating new plan - reset to initial state
+            self.beginResetModel()
+            self._params = copy.deepcopy(self._initial_params)
+            self.endResetModel()

@@ -32,8 +32,7 @@ class PlanEditorDialog(QtWidgets.QDialog):
 
         # Set column widths
         self.tableView.setColumnWidth(0, 200)  # Parameter name
-        self.tableView.setColumnWidth(1, 30)  # Checkbox
-        self.tableView.setColumnWidth(2, 300)  # Value
+        self.tableView.setColumnWidth(1, 300)  # Value
 
         # Connect button signals
         self.addPlanButton.clicked.connect(self.on_add_plan)
