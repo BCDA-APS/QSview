@@ -73,15 +73,32 @@ class QueueEditorWidget(QtWidgets.QWidget):
         self.model.selected_queue_item_uids = []
         self.tableView.clearSelection()
 
+        # Connect selection changes to update button state
+        self.tableView.selectionModel().selectionChanged.connect(
+            self._update_action_buttons_state
+        )
+
     def _on_queue_changed(self, queue_data):
         """Handle queue change signal"""
         self.current_model.update_data(queue_data)
         QTimer.singleShot(0, self._resize_table)
         QTimer.singleShot(10, self._setup_delegates)
+        QTimer.singleShot(0, self._update_action_buttons_state)
 
     def _on_queue_needs_update(self):
         """Handle queue update signal."""
         self.model.fetchQueue()
+
+    def _update_action_buttons_state(self):
+        """Update duplicate, delete, and movement button states based on selection."""
+        selection = self.tableView.selectionModel()
+        has_selection = selection.hasSelection() if selection else False
+        self.duplicateButton.setEnabled(has_selection)
+        self.deleteButton.setEnabled(has_selection)
+        self.topButton.setEnabled(has_selection)
+        self.upButton.setEnabled(has_selection)
+        self.downButton.setEnabled(has_selection)
+        self.bottomButton.setEnabled(has_selection)
 
     # =====================================
     # Model Switching & Delegates
