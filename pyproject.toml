@@ -14,6 +14,7 @@ license = {text = "MIT"}
 dependencies = [
     'pyqt5>5.13',
     'bluesky-queueserver-api',
+    'bluesky-queueserver',  # For construct_parameters and format_text_descriptions
 ]
 
 [project.scripts]
