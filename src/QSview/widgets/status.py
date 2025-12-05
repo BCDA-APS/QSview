@@ -12,7 +12,7 @@ from .. import (
 # Define the icon constants; see https://stackoverflow.com/questions/38195763/implementing-led-in-pyqt-designer
 ICON_RED_LED = ":/icons/led-red-on.png"
 ICON_GREEN_LED = ":/icons/green-led-on.png"
-ICON_GREY_LED = ":/icons/grey_led_off.png"
+ICON_GREY_LED = ":/icons/grey-led-off.png"
 
 
 class StatusWidget(QtWidgets.QWidget):
