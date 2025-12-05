@@ -12,6 +12,7 @@ from .. import (
 # Define the icon constants; see https://stackoverflow.com/questions/38195763/implementing-led-in-pyqt-designer
 ICON_RED_LED = ":/icons/led-red-on.png"
 ICON_GREEN_LED = ":/icons/green-led-on.png"
+ICON_GREY_LED = ":/icons/grey_led_off.png"
 
 
 class StatusWidget(QtWidgets.QWidget):
@@ -338,22 +339,53 @@ class StatusWidget(QtWidgets.QWidget):
 
     def _update_RE_status(self, is_connected, status):
         """Update UI based on connection state."""
-        if not status:
-            # Clear when no status
-            self.RELEDLabel.setText("")
+        if not is_connected:
+            # Grey LED when no status
+            pixmap = QtGui.QPixmap(ICON_GREY_LED)
+            self.RELEDLabel.setPixmap(
+                pixmap.scaled(
+                    20, 20, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation
+                )
+            )
+            # Disable RE Environment buttons
+            self.runEngineOpenButton.setEnabled(False)
+            self.runEngineCloseButton.setEnabled(False)
+            self.runEngineDestroyButton.setEnabled(False)
+            # Disable RE Control buttons
+            self.rePauseButton_deferred.setEnabled(False)
+            self.rePauseButton_immediate.setEnabled(False)
+            self.reResumeButton.setEnabled(False)
+            self.reHaltButton.setEnabled(False)
+            self.reAbortButton.setEnabled(False)
+            self.reStopButton.setEnabled(False)
             return
 
+        RE_state = status.get("re_state", None)
+        manager_state = status.get("manager_state", None)
         worker_exists = status.get("worker_environment_exists", False)
 
-        # Enable buttons only when worker exists
-        self.rePauseButton_deferred.setEnabled(is_connected and worker_exists)
-        self.rePauseButton_immediate.setEnabled(is_connected and worker_exists)
-        self.reResumeButton.setEnabled(is_connected and worker_exists)
-        self.reHaltButton.setEnabled(is_connected and worker_exists)
-        self.reAbortButton.setEnabled(is_connected and worker_exists)
-        self.reStopButton.setEnabled(is_connected and worker_exists)
+        # Environment controls
+        self.runEngineOpenButton.setEnabled(is_connected and not worker_exists)
+        self.runEngineCloseButton.setEnabled(is_connected and worker_exists)
+        self.runEngineDestroyButton.setEnabled(is_connected and worker_exists)
 
-        RE_state = status.get("re_state", None)
+        # Run Engine controls - Pause buttons enabled when running
+        is_running = RE_state == "running" or manager_state == "executing_queue"
+        is_paused = RE_state == "paused" or manager_state == "paused"
+
+        self.rePauseButton_deferred.setEnabled(
+            is_connected and worker_exists and is_running
+        )
+        self.rePauseButton_immediate.setEnabled(
+            is_connected and worker_exists and is_running
+        )
+
+        # Resume, Stop, Abort, Halt enabled only when paused
+        self.reResumeButton.setEnabled(is_connected and worker_exists and is_paused)
+        self.reStopButton.setEnabled(is_connected and worker_exists and is_paused)
+        self.reAbortButton.setEnabled(is_connected and worker_exists and is_paused)
+        self.reHaltButton.setEnabled(is_connected and worker_exists and is_paused)
+
         if RE_state is not None:
             pixmap = QtGui.QPixmap(ICON_GREEN_LED)
             self.RELEDLabel.setPixmap(
@@ -392,9 +424,12 @@ class StatusWidget(QtWidgets.QWidget):
 
     def _update_Q_status(self, is_connected, status):
         """Update UI based on the queue status"""
-        if not status:
+        if not is_connected:
             self.queueStatusLabel.setText("")
             self.queueStopButton.setChecked(False)
+            # Disable buttons
+            self.queuePlayButton.setEnabled(False)
+            self.queueStopButton.setEnabled(False)
             return
 
         worker_exists = status.get("worker_environment_exists", False)
@@ -402,9 +437,22 @@ class StatusWidget(QtWidgets.QWidget):
         queue_stop_pending = status.get("queue_stop_pending", False)
         queue_autostart_enabled = status.get("queue_autostart_enabled", False)
 
-        # Enable buttons only when worker exists
-        self.queuePlayButton.setEnabled(is_connected and worker_exists)
-        self.queueStopButton.setEnabled(is_connected and worker_exists)
+        # Queue controls - Start disabled when running, Stop enabled when running
+        is_queue_running = running_item_uid is not None
+
+        if queue_autostart_enabled:
+            queue_start_enabled = False
+        else:
+            queue_start_enabled = (
+                is_connected and worker_exists and not is_queue_running
+            )
+
+        self.queuePlayButton.setEnabled(queue_start_enabled)
+        self.queueStopButton.setEnabled(
+            is_connected and worker_exists and is_queue_running
+        )
+
+        # Enable auto-start only when worker exists
         self.autoStartCheckBox.setEnabled(is_connected and worker_exists)
 
         # Update buttons to match server state
