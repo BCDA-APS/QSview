@@ -262,6 +262,11 @@ class QueueEditorWidget(QtWidgets.QWidget):
 
     def _on_edit_cell_clicked(self, row):
         """Handle Edit button click for a specific row."""
+        if not self.model or not self.model.isConnected():
+            if self.model:
+                self.model.messageChanged.emit("Not connected to server")
+            return
+
         queue_data = self.model.getQueue()
         if row < len(queue_data):
             queue_item = queue_data[row]
@@ -500,6 +505,9 @@ class QueueEditorWidget(QtWidgets.QWidget):
                     self.modeComboBox.setCurrentIndex(0)
             finally:
                 self.modeComboBox.blockSignals(False)
+        # Enable/disable control based on connection state
+        self.modeComboBox.setEnabled(is_connected)
+        self.addQueueButton.setEnabled(is_connected)
 
     def onStatusChanged(self, is_connected, status):
         """Handle periodic status updates from model (every 0.5s)."""
