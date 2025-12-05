@@ -47,6 +47,7 @@ class StatusWidget(QtWidgets.QWidget):
         self.runEngineOpenButton.clicked.connect(self.do_RE_open)
         self.runEngineCloseButton.clicked.connect(self.do_RE_close)
         self.runEngineDestroyButton.clicked.connect(self.do_RE_destroy)
+        self.runEngineUpdateButton.clicked.connect(self.do_RE_update)
 
         # Queue control buttons
         self.queueStopButton.setCheckable(True)
@@ -93,6 +94,11 @@ class StatusWidget(QtWidgets.QWidget):
         try:
             success, msg = rem_api.queue_start()
             if not success:
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    "Error",
+                    f"Error starting queue: {msg}",
+                )
                 self.mainwindow.setMessage(f"Error starting queue: {msg}")
             else:
                 self.mainwindow.setMessage("Queue started successfully")
@@ -108,6 +114,11 @@ class StatusWidget(QtWidgets.QWidget):
         try:
             success, msg = rem_api.queue_stop()
             if not success:
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    "Error",
+                    f"Error stopping queue: {msg}",
+                )
                 self.mainwindow.setMessage(f"Error stopping queue: {msg}")
             else:
                 self.mainwindow.setMessage("Queue stopped successfully")
@@ -123,6 +134,11 @@ class StatusWidget(QtWidgets.QWidget):
         try:
             success, msg = rem_api.queue_stop_cancel()
             if not success:
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    "Error",
+                    f"Error cancelling pending request to stop the queue: {msg}",
+                )
                 self.mainwindow.setMessage(
                     f"Error cancelling pending request to stop the queue: {msg}"
                 )
@@ -154,6 +170,11 @@ class StatusWidget(QtWidgets.QWidget):
         try:
             success, msg = rem_api.queue_autostart(self.autoStartCheckBox.isChecked())
             if not success:
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    "Error",
+                    f"Error setting auto-start: {msg}",
+                )
                 self.mainwindow.setMessage(f"Error setting auto-start: {msg}")
             else:
                 self.mainwindow.setMessage("Auto-start set successfully")
@@ -175,6 +196,11 @@ class StatusWidget(QtWidgets.QWidget):
                 self.mainwindow.setMessage("Opening Run Engine...")
                 success, msg = rem_api.environment_open()
                 if not success:
+                    QtWidgets.QMessageBox.critical(
+                        self,
+                        "Error",
+                        f"Error opening environment: {msg}",
+                    )
                     self.mainwindow.setMessage(f"Error opening environment: {msg}")
                 else:
                     self.mainwindow.setMessage("Run Engine opened")
@@ -194,6 +220,11 @@ class StatusWidget(QtWidgets.QWidget):
                 self.mainwindow.setMessage("Closing Run Engine...")
                 success, msg = rem_api.environment_close()
                 if not success:
+                    QtWidgets.QMessageBox.critical(
+                        self,
+                        "Error",
+                        f"Error closing environment: {msg}",
+                    )
                     self.mainwindow.setMessage(f"Error closing environment: {msg}")
                 else:
                     self.mainwindow.setMessage("Run Engine closed")
@@ -213,6 +244,11 @@ class StatusWidget(QtWidgets.QWidget):
                 self.mainwindow.setMessage("Destroying Run Engine...")
                 success, msg = rem_api.environment_destroy()
                 if not success:
+                    QtWidgets.QMessageBox.critical(
+                        self,
+                        "Error",
+                        f"Error destroying environment: {msg}",
+                    )
                     self.mainwindow.setMessage(f"Error destroying environment: {msg}")
                 else:
                     self.mainwindow.setMessage("Run Engine destroyed")
@@ -220,6 +256,28 @@ class StatusWidget(QtWidgets.QWidget):
                 self.mainwindow.setMessage("Environment already destroyed")
         except Exception as e:
             self.mainwindow.setMessage(f"Error destroying environment: {e}")
+
+    def do_RE_update(self):
+        """Update the Run Engine environment."""
+        rem_api, is_connected, re_status = self._get_cached_state()
+        if not is_connected:
+            self.mainwindow.setMessage("Not connected to server")
+            return
+        try:
+            if re_status is not None:
+                self.mainwindow.setMessage("Updating Run Engine...")
+                success, msg, task_uid = rem_api.environment_update()
+                if not success:
+                    QtWidgets.QMessageBox.critical(
+                        self,
+                        "Error",
+                        f"Error updating environment: {msg}",
+                    )
+                    self.mainwindow.setMessage(f"Error updating environment: {msg}")
+                else:
+                    self.mainwindow.setMessage("Run Engine updated")
+        except Exception as e:
+            self.mainwindow.setMessage(f"Error updating environment: {e}")
 
     # ========================================
     # RE Execution Control (Run Control)
@@ -234,6 +292,11 @@ class StatusWidget(QtWidgets.QWidget):
         try:
             success, msg = rem_api.re_pause("deferred")
             if not success:
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    "Error",
+                    f"Error pausing Run Engine: {msg}",
+                )
                 self.mainwindow.setMessage(f"Error pausing Run Engine: {msg}")
             else:
                 self.mainwindow.setMessage(
@@ -251,6 +314,11 @@ class StatusWidget(QtWidgets.QWidget):
         try:
             success, msg = rem_api.re_pause("immediate")
             if not success:
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    "Error",
+                    f"Error pausing Run Engine: {msg}",
+                )
                 self.mainwindow.setMessage(f"Error pausing Run Engine: {msg}")
             else:
                 self.mainwindow.setMessage("Run Engine paused immediately")
@@ -266,6 +334,11 @@ class StatusWidget(QtWidgets.QWidget):
         try:
             success, msg = rem_api.re_resume()
             if not success:
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    "Error",
+                    f"Error resuming Run Engine: {msg}",
+                )
                 self.mainwindow.setMessage(f"Error resuming Run Engine: {msg}")
             else:
                 self.mainwindow.setMessage("Run Engine resumed")
@@ -281,6 +354,11 @@ class StatusWidget(QtWidgets.QWidget):
         try:
             success, msg = rem_api.re_halt()
             if not success:
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    "Error",
+                    f"Error halting Run Engine: {msg}",
+                )
                 self.mainwindow.setMessage(f"Error halting Run Engine: {msg}")
             else:
                 self.mainwindow.setMessage("Run Engine halted")
@@ -296,6 +374,11 @@ class StatusWidget(QtWidgets.QWidget):
         try:
             success, msg = rem_api.re_abort()
             if not success:
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    "Error",
+                    f"Error aborting Run Engine: {msg}",
+                )
                 self.mainwindow.setMessage(f"Error aborting Run Engine: {msg}")
             else:
                 self.mainwindow.setMessage("Run Engine aborted")
@@ -311,6 +394,11 @@ class StatusWidget(QtWidgets.QWidget):
         try:
             success, msg = rem_api.re_stop()
             if not success:
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    "Error",
+                    f"Error stopping Run Engine: {msg}",
+                )
                 self.mainwindow.setMessage(f"Error stopping Run Engine: {msg}")
             else:
                 self.mainwindow.setMessage("Run Engine stopped")
@@ -369,6 +457,7 @@ class StatusWidget(QtWidgets.QWidget):
 
         # Environment controls
         self.runEngineOpenButton.setEnabled(is_connected and not worker_exists)
+        self.runEngineUpdateButton.setEnabled(is_connected and worker_exists)
         self.runEngineCloseButton.setEnabled(is_connected and worker_exists)
         self.runEngineDestroyButton.setEnabled(is_connected and worker_exists)
 
