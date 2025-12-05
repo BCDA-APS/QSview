@@ -32,6 +32,9 @@ class StatusWidget(QtWidgets.QWidget):
         self._update_Q_status(False, None)
         self._update_QS_status(False, "", "")
 
+        self._connection_lost_dialog_shown = False
+        self._has_been_connected = False
+
         self.setup()
 
     def setup(self):
@@ -483,7 +486,7 @@ class StatusWidget(QtWidgets.QWidget):
         return rem_api, is_connected, re_status
 
     # ========================================
-    # Signal Handlers (Slots)
+    # Status & Connection
     # ========================================
 
     def onStatusChanged(self, is_connected, status):
@@ -497,6 +500,30 @@ class StatusWidget(QtWidgets.QWidget):
         self._update_QS_status(
             is_connected, control_addr, info_addr
         )  # no need to change status since onStatusChanged fires right after onConnectionChanged
+
+        # Track successful connections
+        if is_connected and control_addr and control_addr != "reconnecting":
+            self._has_been_connected = True
+            self._connection_lost_dialog_shown = False
+
+        # Show connection lost dialog only for actual disconnections (not reconnecting)
+        if (
+            not is_connected
+            and control_addr != "reconnecting"
+            and self._has_been_connected
+            and not self._connection_lost_dialog_shown
+        ):
+            self._connection_lost_dialog_shown = True
+            # Use QTimer to show dialog asynchronously to avoid blocking
+            QtCore.QTimer.singleShot(100, self._show_connection_lost_dialog)
+
+    def _show_connection_lost_dialog(self):
+        """Show connection lost dialog (called asynchronously)."""
+        QtWidgets.QMessageBox.critical(
+            self,
+            "No Connection",
+            "Unable to communicate with the server.\n\nPlease check the server/connection and try reconnecting.",
+        )
 
     # ========================================
     # Advanced mode
