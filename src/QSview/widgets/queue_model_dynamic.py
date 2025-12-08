@@ -5,15 +5,19 @@ This model automatically creates columns based on the parameters found in the qu
 similar to the old GUI's approach.
 """
 
+import inspect
+
+from bluesky_queueserver import construct_parameters
 from PyQt5 import QtGui
 
 
 class DynamicQueueTableModel(QtGui.QStandardItemModel):
     """Dynamic table model for displaying queue items with parameter-based columns."""
 
-    def __init__(self, parent=None, table_view=None):
+    def __init__(self, parent=None, table_view=None, model=None):
         super().__init__(parent)
         self.table_view = table_view
+        self.model = model
 
     def setup_headers(self, queue_data):
         """Set up table column headers based on data content."""
@@ -27,7 +31,27 @@ class DynamicQueueTableModel(QtGui.QStandardItemModel):
         all_params = []  # use list to preserve order
         seen_params = set()  # use set() to remove duplicates
         for item in queue_data:
-            kwargs = item.get("kwargs", {})
+            original_args = item.get("args", [])
+            original_kwargs = item.get("kwargs", {})
+
+            # Try to get bound kwargs to find parameter names (like detectors)
+            if self.model:
+                bound_args, kwargs = self.model.get_bound_item_arguments(item)
+
+                # If binding failed (args not empty), put args into kwargs as "args"
+                if bound_args:
+                    kwargs = dict(**{"args": bound_args}, **kwargs)
+            else:
+                kwargs = original_kwargs
+                if original_args:
+                    kwargs = dict(**{"args": original_args}, **kwargs)
+
+            # Check if "args" column is needed
+            if "args" in kwargs and "args" not in seen_params:
+                all_params.append("args")
+                seen_params.add("args")
+
+            # Use bound kwargs to find parameter names
             for param in kwargs.keys():
                 if param not in seen_params:
                     if param != "md":
@@ -60,15 +84,52 @@ class DynamicQueueTableModel(QtGui.QStandardItemModel):
             queue_item.get("name", "Unknown"),  # Name
         ]
 
-        # Add dynamic parameter columns
-        kwargs = queue_item.get("kwargs", {})
+        plan_name = queue_item.get("name", "")
+        original_args = queue_item.get("args", [])
+        original_kwargs = queue_item.get("kwargs", {})
+
+        # Try to get bound arguments
+        if self.model:
+            args, kwargs = self.model.get_bound_item_arguments(queue_item)
+
+            # If binding failed (args not empty), put args into kwargs as "args"
+            if args:
+                kwargs = dict(**{"args": args}, **kwargs)
+                args = []  # Clear args since they're now in kwargs
+            elif not args and plan_name:
+                # Binding succeeded - extract VAR_POSITIONAL from kwargs
+                plan_params = self.model.get_allowed_plan_parameters(name=plan_name)
+                if plan_params:
+                    parameters = construct_parameters(plan_params.get("parameters", {}))
+                    for p in parameters:
+                        if p.kind == inspect.Parameter.VAR_POSITIONAL:
+                            var_pos_value = kwargs.get(p.name)
+                            if var_pos_value is not None:
+                                args = (
+                                    var_pos_value
+                                    if isinstance(var_pos_value, (list, tuple))
+                                    else [var_pos_value]
+                                )
+                                kwargs = kwargs.copy()
+                                kwargs.pop(p.name, None)
+                            break
+        else:
+            args = original_args
+            kwargs = original_kwargs
+            if args:
+                kwargs = dict(**{"args": args}, **kwargs)
+                args = []
+
         headers = [
             self.horizontalHeaderItem(i).text() for i in range(self.columnCount())
         ]
 
         # Add parameter values; skip Name (1st column), Metadata, User, Edit, and Delete (last 4 columns)
         for header in headers[1:-4]:
-            value = kwargs.get(header, "")
+            if header == "args":
+                value = args if args else ""
+            else:
+                value = kwargs.get(header, "")
             row_data.append(str(value) if value != "" else "")
 
         # Add metadata

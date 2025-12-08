@@ -31,12 +31,17 @@ class QueueEditorWidget(QtWidgets.QWidget):
     def setup(self):
         """Connect signals and slots."""
         # Create table model
-        self.static_model = QueueTableModel(table_view=self.tableView)
-        self.dynamic_model = DynamicQueueTableModel(table_view=self.tableView)
+        self.static_model = QueueTableModel(table_view=self.tableView, model=self.model)
+        self.dynamic_model = DynamicQueueTableModel(
+            table_view=self.tableView, model=self.model
+        )
 
         # Start with static model
         self.current_model = self.dynamic_model
         self.tableView.setModel(self.current_model)
+
+        # Track if we've re-rendered after plans loaded
+        self._plans_loaded_rendered = False
 
         # Ensure table allows multiple row selection (ExtendedSelection allows non-contiguous)
         self.tableView.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
@@ -490,6 +495,8 @@ class QueueEditorWidget(QtWidgets.QWidget):
             self.model.fetchQueue()
             QTimer.singleShot(0, self._resize_table)
             QTimer.singleShot(10, self._setup_delegates)
+            # Reset flag when reconnecting
+            self._plans_loaded_rendered = False
             # Handle plan mode at connection
             self.modeComboBox.blockSignals(True)
             try:
@@ -511,6 +518,24 @@ class QueueEditorWidget(QtWidgets.QWidget):
 
     def onStatusChanged(self, is_connected, status):
         """Handle periodic status updates from model (every 0.5s)."""
+        # Update queue count label
         if status:
             queue_count = status.get("items_in_queue", 0)
             self.itemsQueueLabel.setText(str(queue_count))
+
+        # Re-render dynamic model when plans become available (fixes first-load issue)
+        if (
+            is_connected
+            and self.current_model == self.dynamic_model
+            and not self._plans_loaded_rendered
+        ):
+            # Check if plans are now available by trying to get plan names
+            if self.model:
+                plan_names = self.model.get_allowed_plan_names()
+                if plan_names:  # Plans are loaded
+                    # Re-render to get correct column headers
+                    queue_data = self.model.getQueue() if self.model else []
+                    if queue_data:
+                        self.dynamic_model.update_data(queue_data)
+                        QTimer.singleShot(0, self._resize_table)
+                        self._plans_loaded_rendered = True
