@@ -9,6 +9,7 @@ and emitting signals when state changes occur.
     ~QueueServerModel
 """
 
+from bluesky_queueserver import bind_plan_arguments
 from bluesky_queueserver_api.zmq import REManagerAPI
 from PyQt5 import QtCore
 
@@ -728,14 +729,36 @@ class QueueServerModel(QtCore.QObject):
             return False
 
     def get_bound_item_arguments(self, item):
-        """Extract args and kwargs from item dict.
+        """Extract args and kwargs from item dict, binding positional args to parameter names.
+
+        Uses the plan definition to convert positional arguments back to keyword arguments
+        based on parameter names.
 
         Args:
             item (dict): Queue item dictionary
 
         Returns:
-            tuple: (args_list, kwargs_dict)
+            tuple: (args_list, kwargs_dict) - args will be empty if binding succeeds
         """
-        args = item.get("args", [])
-        kwargs = item.get("kwargs", {})
-        return args, kwargs
+        item_args = item.get("args", [])
+        item_kwargs = item.get("kwargs", {})
+        item_type = item.get("item_type", None)
+        item_name = item.get("name", None)
+
+        try:
+            if item_type == "plan":
+                plan_parameters = self._allowed_plans.get(item_name, None)
+                if plan_parameters is not None:
+                    bound_arguments = bind_plan_arguments(
+                        plan_args=item_args,
+                        plan_kwargs=item_kwargs,
+                        plan_parameters=plan_parameters,
+                    )
+                    # If binding succeeded, args are now in kwargs with proper names
+                    item_args = []
+                    item_kwargs = bound_arguments.arguments
+        except Exception:
+            # If binding fails, return original args/kwargs
+            pass
+
+        return item_args, item_kwargs
