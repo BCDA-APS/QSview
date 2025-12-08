@@ -108,6 +108,34 @@ class PlanParameterTableModel(QtCore.QAbstractTableModel):
 
                 return display_str
 
+        elif role == Qt.EditRole:
+            # Return value for editor initialization (column 1 only)
+            if col == 1:
+                # If there's an invalid value, return it so user can edit it
+                if param.get("is_invalid", False):
+                    return param.get("invalid_value_str", "")
+
+                value = param.get("value", inspect.Parameter.empty)
+                default = param.get("default", inspect.Parameter.empty)
+                is_value_set = param.get("is_value_set", False)
+
+                # Get the actual value to edit
+                edit_value = value if is_value_set else default
+
+                if edit_value == inspect.Parameter.empty:
+                    return ""
+
+                # Format as Python literal string (QLineEdit only handles strings,
+                # which ast.literal_eval can parse back in setData)
+                if isinstance(edit_value, str):
+                    edit_str = f"'{edit_value}'"
+                else:
+                    edit_str = str(edit_value)
+
+                return edit_str
+
+            return None
+
         elif role == Qt.ForegroundRole:
             if col == 0:
                 # Make invalid red and missing required value blue
