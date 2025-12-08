@@ -10,10 +10,11 @@ from ..utils import format_kwargs_three_lines
 class HistoryTableModel(QtGui.QStandardItemModel):
     """Table model for displaying queue history with static columns."""
 
-    def __init__(self, parent=None, table_view=None):
+    def __init__(self, parent=None, table_view=None, model=None):
         super().__init__(parent)
         self.table_view = table_view
         self.setup_headers()
+        self.model = model
 
     def setup_headers(self):
         """Set up table column headers."""
@@ -38,13 +39,23 @@ class HistoryTableModel(QtGui.QStandardItemModel):
 
     def extract_row_data(self, history_item):
         """Extract data for a single row from history item."""
-
         result = history_item.get("result", {})
+
+        # Get bound arguments (converts positional args to kwargs with proper names)
+        if self.model:
+            args, kwargs = self.model.get_bound_item_arguments(history_item)
+        else:
+            args = history_item.get("args", [])
+            kwargs = history_item.get("kwargs", {}).copy()
+
+        # Combine args and kwargs for formatting
+        if args:
+            kwargs["args"] = args
 
         return [
             result.get("exit_status", "Unknown"),  # Status
             history_item.get("name", "Unknown"),  # Name
-            self.format_arguments(history_item.get("kwargs", {})),  # Arguments
+            self.format_arguments(kwargs),  # Arguments
             history_item.get("user", "Unknown"),  # User
         ]
 

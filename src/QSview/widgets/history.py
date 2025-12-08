@@ -24,12 +24,19 @@ class HistoryWidget(QtWidgets.QWidget):
     def setup(self):
         """Connect signals and slots."""
         # Create table model
-        self.static_model = HistoryTableModel(table_view=self.tableView)
-        self.dynamic_model = DynamicHistoryTableModel(table_view=self.tableView)
+        self.static_model = HistoryTableModel(
+            table_view=self.tableView, model=self.model
+        )
+        self.dynamic_model = DynamicHistoryTableModel(
+            table_view=self.tableView, model=self.model
+        )
 
         # Start with static model
         self.current_model = self.dynamic_model
         self.tableView.setModel(self.current_model)
+
+        # Track if we've re-rendered after plans loaded
+        self._plans_loaded_rendered = False
 
         # Install event filter to handle ESC key for deselection
         self.tableView.installEventFilter(self)
@@ -175,9 +182,29 @@ class HistoryWidget(QtWidgets.QWidget):
             # Fetch history when connected
             self.model.fetchHistory()
             QTimer.singleShot(0, self._resize_table)
+            # Reset flag when reconnecting
+            self._plans_loaded_rendered = False
 
     def onStatusChanged(self, is_connected, status):
         """Handle periodic status updates from model (every 0.5s)."""
+        # Update history count label
         if status:
             history_count = status.get("items_in_history", 0)
             self.itemsHistoryLabel.setText(str(history_count))
+
+        # Re-render dynamic model when plans become available (fixes first-load issue)
+        if (
+            is_connected
+            and self.current_model == self.dynamic_model
+            and not self._plans_loaded_rendered
+        ):
+            # Check if plans are now available by trying to get plan names
+            if self.model:
+                plan_names = self.model.get_allowed_plan_names()
+                if plan_names:  # Plans are loaded
+                    # Re-render to get correct column headers
+                    history_data = self.model.getHistory() if self.model else []
+                    if history_data:
+                        self.dynamic_model.update_data(history_data)
+                        QTimer.singleShot(0, self._resize_table)
+                        self._plans_loaded_rendered = True
