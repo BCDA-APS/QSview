@@ -10,10 +10,11 @@ from ..utils import format_kwargs_three_lines
 class QueueTableModel(QtGui.QStandardItemModel):
     """Table model for displaying queue items with static columns."""
 
-    def __init__(self, parent=None, table_view=None):
+    def __init__(self, parent=None, table_view=None, model=None):
         super().__init__(parent)
         self.table_view = table_view
         self.setup_headers()
+        self.model = model
 
     def setup_headers(self):
         """Set up table column headers."""
@@ -38,10 +39,18 @@ class QueueTableModel(QtGui.QStandardItemModel):
 
     def extract_row_data(self, queue_item):
         """Extract data for a single row from queue item."""
-
+        # Get bound arguments (converts positional args to kwargs with proper names)
+        if self.model:
+            args, kwargs = self.model.get_bound_item_arguments(queue_item)
+        else:
+            kwargs = queue_item.get("kwargs", {}).copy()
+            args = queue_item.get("args", [])
+        # Combine args and kwargs for formatting
+        if args:
+            kwargs["args"] = args
         return [
             queue_item.get("name", "Unknown"),  # Name
-            self.format_arguments(queue_item.get("kwargs", {})),  # Arguments
+            self.format_arguments(kwargs),  # Arguments
             queue_item.get("user", "Unknown"),  # User
         ]
 

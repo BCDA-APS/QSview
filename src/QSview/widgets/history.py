@@ -24,12 +24,19 @@ class HistoryWidget(QtWidgets.QWidget):
     def setup(self):
         """Connect signals and slots."""
         # Create table model
-        self.static_model = HistoryTableModel(table_view=self.tableView)
-        self.dynamic_model = DynamicHistoryTableModel(table_view=self.tableView)
+        self.static_model = HistoryTableModel(
+            table_view=self.tableView, model=self.model
+        )
+        self.dynamic_model = DynamicHistoryTableModel(
+            table_view=self.tableView, model=self.model
+        )
 
         # Start with static model
         self.current_model = self.dynamic_model
         self.tableView.setModel(self.current_model)
+
+        # Track if we've re-rendered after plans loaded
+        self._plans_loaded_rendered = False
 
         # Install event filter to handle ESC key for deselection
         self.tableView.installEventFilter(self)
@@ -39,7 +46,7 @@ class HistoryWidget(QtWidgets.QWidget):
         self.viewCheckBox.setText("Detailed View")
 
         # Connect to model signals
-        self.model.historyChanged.connect(self._on_queue_changed)
+        self.model.historyChanged.connect(self._on_history_changed)
         self.model.historyNeedsUpdate.connect(self._on_history_needs_update)
 
         # Connect UI signals
@@ -47,8 +54,13 @@ class HistoryWidget(QtWidgets.QWidget):
         self.copyHistoryButton.clicked.connect(self._on_copy_to_queue_clicked)
         self.viewCheckBox.stateChanged.connect(self._on_toggle_view)
 
-    def _on_queue_changed(self, history_data):
-        """Handle queue changed signal"""
+        # Connect selection changes to update button state
+        self.tableView.selectionModel().selectionChanged.connect(
+            self._update_copy_button_state
+        )
+
+    def _on_history_changed(self, history_data):
+        """Handle history changed signal"""
 
         # Save current scroll positions
         vsb = self.tableView.verticalScrollBar()
@@ -63,6 +75,14 @@ class HistoryWidget(QtWidgets.QWidget):
         QTimer.singleShot(0, self._resize_table)
         # TODO: fix flickering
         QTimer.singleShot(20, lambda: self._restore_scroll_position(v, h))
+        # Update button state after data update
+        QTimer.singleShot(0, self._update_copy_button_state)
+
+    def _update_copy_button_state(self):
+        """Update copy button state based on selection."""
+        selection = self.tableView.selectionModel()
+        has_selection = selection.hasSelection() if selection else False
+        self.copyHistoryButton.setEnabled(has_selection)
 
     def _on_history_needs_update(self):
         """Handle history update signal."""
@@ -162,9 +182,29 @@ class HistoryWidget(QtWidgets.QWidget):
             # Fetch history when connected
             self.model.fetchHistory()
             QTimer.singleShot(0, self._resize_table)
+            # Reset flag when reconnecting
+            self._plans_loaded_rendered = False
 
     def onStatusChanged(self, is_connected, status):
         """Handle periodic status updates from model (every 0.5s)."""
+        # Update history count label
         if status:
             history_count = status.get("items_in_history", 0)
             self.itemsHistoryLabel.setText(str(history_count))
+
+        # Re-render dynamic model when plans become available (fixes first-load issue)
+        if (
+            is_connected
+            and self.current_model == self.dynamic_model
+            and not self._plans_loaded_rendered
+        ):
+            # Check if plans are now available by trying to get plan names
+            if self.model:
+                plan_names = self.model.get_allowed_plan_names()
+                if plan_names:  # Plans are loaded
+                    # Re-render to get correct column headers
+                    history_data = self.model.getHistory() if self.model else []
+                    if history_data:
+                        self.dynamic_model.update_data(history_data)
+                        QTimer.singleShot(0, self._resize_table)
+                        self._plans_loaded_rendered = True

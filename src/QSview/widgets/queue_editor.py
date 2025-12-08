@@ -31,12 +31,17 @@ class QueueEditorWidget(QtWidgets.QWidget):
     def setup(self):
         """Connect signals and slots."""
         # Create table model
-        self.static_model = QueueTableModel(table_view=self.tableView)
-        self.dynamic_model = DynamicQueueTableModel(table_view=self.tableView)
+        self.static_model = QueueTableModel(table_view=self.tableView, model=self.model)
+        self.dynamic_model = DynamicQueueTableModel(
+            table_view=self.tableView, model=self.model
+        )
 
         # Start with static model
         self.current_model = self.dynamic_model
         self.tableView.setModel(self.current_model)
+
+        # Track if we've re-rendered after plans loaded
+        self._plans_loaded_rendered = False
 
         # Ensure table allows multiple row selection (ExtendedSelection allows non-contiguous)
         self.tableView.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
@@ -73,15 +78,32 @@ class QueueEditorWidget(QtWidgets.QWidget):
         self.model.selected_queue_item_uids = []
         self.tableView.clearSelection()
 
+        # Connect selection changes to update button state
+        self.tableView.selectionModel().selectionChanged.connect(
+            self._update_action_buttons_state
+        )
+
     def _on_queue_changed(self, queue_data):
         """Handle queue change signal"""
         self.current_model.update_data(queue_data)
         QTimer.singleShot(0, self._resize_table)
         QTimer.singleShot(10, self._setup_delegates)
+        QTimer.singleShot(0, self._update_action_buttons_state)
 
     def _on_queue_needs_update(self):
         """Handle queue update signal."""
         self.model.fetchQueue()
+
+    def _update_action_buttons_state(self):
+        """Update duplicate, delete, and movement button states based on selection."""
+        selection = self.tableView.selectionModel()
+        has_selection = selection.hasSelection() if selection else False
+        self.duplicateButton.setEnabled(has_selection)
+        self.deleteButton.setEnabled(has_selection)
+        self.topButton.setEnabled(has_selection)
+        self.upButton.setEnabled(has_selection)
+        self.downButton.setEnabled(has_selection)
+        self.bottomButton.setEnabled(has_selection)
 
     # =====================================
     # Model Switching & Delegates
@@ -245,6 +267,11 @@ class QueueEditorWidget(QtWidgets.QWidget):
 
     def _on_edit_cell_clicked(self, row):
         """Handle Edit button click for a specific row."""
+        if not self.model or not self.model.isConnected():
+            if self.model:
+                self.model.messageChanged.emit("Not connected to server")
+            return
+
         queue_data = self.model.getQueue()
         if row < len(queue_data):
             queue_item = queue_data[row]
@@ -468,6 +495,8 @@ class QueueEditorWidget(QtWidgets.QWidget):
             self.model.fetchQueue()
             QTimer.singleShot(0, self._resize_table)
             QTimer.singleShot(10, self._setup_delegates)
+            # Reset flag when reconnecting
+            self._plans_loaded_rendered = False
             # Handle plan mode at connection
             self.modeComboBox.blockSignals(True)
             try:
@@ -483,9 +512,30 @@ class QueueEditorWidget(QtWidgets.QWidget):
                     self.modeComboBox.setCurrentIndex(0)
             finally:
                 self.modeComboBox.blockSignals(False)
+        # Enable/disable control based on connection state
+        self.modeComboBox.setEnabled(is_connected)
+        self.addQueueButton.setEnabled(is_connected)
 
     def onStatusChanged(self, is_connected, status):
         """Handle periodic status updates from model (every 0.5s)."""
+        # Update queue count label
         if status:
             queue_count = status.get("items_in_queue", 0)
             self.itemsQueueLabel.setText(str(queue_count))
+
+        # Re-render dynamic model when plans become available (fixes first-load issue)
+        if (
+            is_connected
+            and self.current_model == self.dynamic_model
+            and not self._plans_loaded_rendered
+        ):
+            # Check if plans are now available by trying to get plan names
+            if self.model:
+                plan_names = self.model.get_allowed_plan_names()
+                if plan_names:  # Plans are loaded
+                    # Re-render to get correct column headers
+                    queue_data = self.model.getQueue() if self.model else []
+                    if queue_data:
+                        self.dynamic_model.update_data(queue_data)
+                        QTimer.singleShot(0, self._resize_table)
+                        self._plans_loaded_rendered = True
