@@ -1,7 +1,12 @@
+[build-system]
+requires = ["setuptools_scm[toml]>=8", "setuptools>=77.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "QSview"
-version = "0.1.0"
-description = "Default template for PDM package"
+version = "0.1.0"  # TODO remove once QSview is tagged
+# dynamic = ["version"]  # TODO enable once QSview is tagged
+description = "QSview: Python Qt5 application to control Bluesky Queue Server."
 authors = [
     {name = "Fanny Rodolakis", email = "rodolakis@anl.gov"},
     {name = "Eric Codrea", email = "codrea@anl.gov"},
@@ -12,25 +17,37 @@ requires-python = ">=3.9"
 readme = "README.md"
 license = {text = "MIT"}
 dependencies = [
-    'pyqt5>5.13',
+    'pyqt5 >5.13',
     'bluesky-queueserver-api',
     'bluesky-queueserver',  # For construct_parameters and format_text_descriptions
 ]
+
+[project.optional-dependencies]
+dev = [
+  "build",
+  "setuptools >=77",
+  "setuptools-scm >=8",
+]
+# doc = ... # TODO
+all = ["QSview[dev]"]
 
 [project.scripts]
 QSview = "QSview.app:main"
 
 [project.urls]
-Homepage = "https://github.com/BCDA-APS/QSview"
+Homepage = "https://github.com/BCDA-APS/QSview/"
 Downloads = "https://github.com/BCDA-APS/QSview"
+Issues = "https://github.com/BCDA-APS/QSview/issues"
 
 ######################
 # Build Info + Tools #
 ######################
 
 [tool.setuptools]
-packages = ["QSview"]
 package-dir = {"QSview" = "src/QSview"}
+
+[tool.setuptools.package-data]
+"QSview" = ["**/*"]
 
 #####################
 # Development Tools #
