@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>872</width>
-    <height>202</height>
+    <width>659</width>
+    <height>351</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -126,6 +126,20 @@
         </size>
        </property>
       </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="saveHistoryButton">
+       <property name="toolTip">
+        <string>Save history to CSV</string>
+       </property>
+       <property name="text">
+        <string>Save</string>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>icons/save.png</normaloff>icons/save.png</iconset>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QPushButton" name="clearHistoryButton">

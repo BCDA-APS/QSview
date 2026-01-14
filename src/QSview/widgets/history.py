@@ -51,6 +51,7 @@ class HistoryWidget(QtWidgets.QWidget):
 
         # Connect UI signals
         self.clearHistoryButton.clicked.connect(self._on_clear_clicked)
+        self.saveHistoryButton.clicked.connect(self._on_save_clicked)
         self.copyHistoryButton.clicked.connect(self._on_copy_to_queue_clicked)
         self.viewCheckBox.stateChanged.connect(self._on_toggle_view)
 
@@ -163,6 +164,12 @@ class HistoryWidget(QtWidgets.QWidget):
             if self.model:
                 self.model.clearHistory()
             self.model.messageChanged.emit("Queue cleared")
+
+    def _on_save_clicked(self):
+        """Save history to CSV file"""
+        main_window = self.window()
+        if main_window:
+            main_window.doSaveHistory()
 
     def _resize_table(self):
         """Resize table columns based on current model view type."""
