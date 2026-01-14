@@ -288,6 +288,21 @@ class ApplicationQSettings(QtCore.QSettings):
             # No current server to keep, clear everything
             self.setKey("servers/recent_servers", "")
 
+    def getHistorySortNewestFirst(self):
+        """Get the saved history sorting preference (default: True for newest first)."""
+        value = self.getKey("history/sort_newest_first")
+        if value is None:
+            return True
+        # QSettings with IniFormat stores booleans as strings, so convert string to bool
+        if isinstance(value, str):
+            return value.lower() not in ("false", "0", "")
+        else:
+            return bool(value)
+
+    def setHistorySortNewestFirst(self, newest_first=True):
+        """Set the history sorting preference"""
+        self.setKey("history/sort_newest_first", newest_first)
+
 
 # create _the_ singleton object
 settings = ApplicationQSettings(__settings_orgName__, __package_name__)

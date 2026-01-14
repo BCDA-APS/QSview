@@ -53,6 +53,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.actionAbout.triggered.connect(self.doAboutDialog)
         self.actionExit.triggered.connect(self.doClose)
 
+        # History sorting order
+        self.actionSortNewestFirst.triggered.connect(self.doHistorySortToggle)
+        self.actionSortNewestFirst.setChecked(settings.getHistorySortNewestFirst())
+
         # Create widgets with connection
         self._setup_widget(StatusWidget, "groupBox_status", "status_widget")
         self._setup_widget(QueueEditorWidget, "groupBox_queue", "queue_editor_widget")
@@ -105,7 +109,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def setMessage(self, text, timeout=0):
         """Write new message to the main window status bar and terminal output."""
-        print(text)
+        # print(text)
         self.statusbar.showMessage(str(text), msecs=timeout)
 
     def doAboutDialog(self, *args, **kw):
@@ -165,6 +169,19 @@ class MainWindow(QtWidgets.QMainWindow):
         self.model.disconnectFromServer()
         self.doClose()
         event.accept()  # let the window close
+
+    def doHistorySortToggle(self):
+        """Toggle history sort direction."""
+
+        # Toggle the settings
+        current = settings.getHistorySortNewestFirst()
+        settings.setHistorySortNewestFirst(not current)
+        self.actionSortNewestFirst.setChecked(not current)
+
+        # Refresh the history display widget if it exist
+        if hasattr(self, "history_widget"):
+            history_data = self.model.getHistory() if self.model else []
+            self.history_widget._on_history_changed(history_data)
 
     def initializeConnection(self):
         """Initialize connection using the most recent server or show open dialog"""

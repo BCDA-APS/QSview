@@ -517,7 +517,7 @@ class QueueServerModel(QtCore.QObject):
             if response.get("success", False):
                 # Store in cache
                 self._history = response.get("items", [])
-                print(f"Fetched {len(self._history)} history items")  # Add this
+                # self.messageChanged.emit(f"Fetched {len(self._history)} history items")
                 # Emit signal for UI updates
                 self.historyChanged.emit(self._history)
                 return self._history
