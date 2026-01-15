@@ -6,6 +6,7 @@ similar to the old GUI's approach.
 """
 
 import inspect
+from datetime import datetime
 
 from bluesky_queueserver import construct_parameters
 from PyQt5 import QtGui
@@ -22,7 +23,9 @@ class DynamicHistoryTableModel(QtGui.QStandardItemModel):
     def setup_headers(self, history_data):
         """Set up table column headers based on data content."""
         if not history_data:
-            self.setHorizontalHeaderLabels(["Status", "Name", "Metadata", "User"])
+            self.setHorizontalHeaderLabels(
+                ["Status", "Name", "Metadata", "Time start", "Time stop", "User"]
+            )
             return
 
         # Collect all unique parameter names in order of first appearance
@@ -57,7 +60,11 @@ class DynamicHistoryTableModel(QtGui.QStandardItemModel):
                         seen_params.add(param)
 
         # Create column headers: fixed columns + dynamic parameters
-        headers = ["Status", "Name"] + all_params + ["Metadata", "User"]
+        headers = (
+            ["Status", "Name"]
+            + all_params
+            + ["Metadata", "Time start", "Time stop", "User"]
+        )
         self.setHorizontalHeaderLabels(headers)
 
     def update_data(self, history_data):
@@ -84,11 +91,20 @@ class DynamicHistoryTableModel(QtGui.QStandardItemModel):
             history_item.get("name", "Unknown"),  # Name
         ]
 
+        time_start = result.get("time_start", "")
+        if time_start:
+            time_start = datetime.fromtimestamp(time_start).strftime(
+                "%Y-%m-%d %H:%M:%S"
+            )
+        time_stop = result.get("time_stop", "")
+        if time_stop:
+            time_stop = datetime.fromtimestamp(time_stop).strftime("%Y-%m-%d %H:%M:%S")
+
+        # Try to get bound arguments
         plan_name = history_item.get("name", "")
         original_args = history_item.get("args", [])
         original_kwargs = history_item.get("kwargs", {})
 
-        # Try to get bound arguments
         if self.model:
             args, kwargs = self.model.get_bound_item_arguments(history_item)
 
@@ -124,18 +140,18 @@ class DynamicHistoryTableModel(QtGui.QStandardItemModel):
             self.horizontalHeaderItem(i).text() for i in range(self.columnCount())
         ]
 
-        # Add parameter values; skip Status, Name (first 2 columns), Metadata and User (last 2)
-        for header in headers[2:-2]:
+        # Add parameter values; skip Status, Name (first 2 columns), Metadata, start/stop time and User (last 4)
+        for header in headers[2:-4]:
             if header == "args":
                 value = args if args else ""
             else:
                 value = kwargs.get(header, "")
             row_data.append(str(value) if value != "" else "")
 
-        # Add metadata
+        # Add metadata, time and user
         row_data.append(kwargs.get("md", ""))
-
-        # Add User last
+        row_data.append(time_start)
+        row_data.append(time_stop)
         row_data.append(history_item.get("user", "Unknown"))
 
         return row_data

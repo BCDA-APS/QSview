@@ -2,6 +2,8 @@
 History Table Model - displays queue history in a table format.
 """
 
+from datetime import datetime
+
 from PyQt5 import QtGui
 
 from ..utils import format_kwargs_three_lines
@@ -18,7 +20,7 @@ class HistoryTableModel(QtGui.QStandardItemModel):
 
     def setup_headers(self):
         """Set up table column headers."""
-        headers = ["Status", "Name", "Arguments", "User"]
+        headers = ["Status", "Name", "Arguments", "Time start", "Time stop", "User"]
         self.setHorizontalHeaderLabels(headers)
 
     def update_data(self, history_data):
@@ -52,10 +54,22 @@ class HistoryTableModel(QtGui.QStandardItemModel):
         if args:
             kwargs["args"] = args
 
+        time_start = result.get("time_start", "")
+        if time_start:
+            time_start = datetime.fromtimestamp(time_start).strftime(
+                "%Y-%m-%d %H:%M:%S"
+            )
+
+        time_stop = result.get("time_stop", "")
+        if time_stop:
+            time_stop = datetime.fromtimestamp(time_stop).strftime("%Y-%m-%d %H:%M:%S")
+
         return [
             result.get("exit_status", "Unknown"),  # Status
             history_item.get("name", "Unknown"),  # Name
             self.format_arguments(kwargs),  # Arguments
+            time_start,
+            time_stop,
             history_item.get("user", "Unknown"),  # User
         ]
 
