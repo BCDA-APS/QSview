@@ -6,9 +6,9 @@ similar to the old GUI's approach.
 """
 
 import inspect
+from datetime import datetime
 
 from bluesky_queueserver import construct_parameters
-from datetime import datetime
 from PyQt5 import QtGui
 
 
