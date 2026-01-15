@@ -7,6 +7,7 @@ Defines MainWindow class.
 """
 
 import csv
+import logging
 
 from PyQt5 import QtWidgets
 
@@ -22,6 +23,8 @@ from .widgets import (
     RunningPlanWidget,
     StatusWidget,
 )
+
+logger = logging.getLogger(__name__)
 
 UI_FILE = utils.getUiFileName(__file__)
 
@@ -80,7 +83,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.splitter_V.setStretchFactor(3, 1)  # Gets 1x stretch
 
         settings.restoreWindowGeometry(self, "mainwindow_geometry")
-        print("Settings are saved in:", settings.fileName())
+        logger.info(f"Settings are saved in: {settings.fileName()}")
 
     def _setup_widget(self, widget_class, parent_groupbox, widget_name):
         """
@@ -116,7 +119,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def setMessage(self, text, timeout=0):
         """Write new message to the main window status bar and terminal output."""
-        # print(text)
+        logger.debug("%s", text)
         self.statusbar.showMessage(str(text), msecs=timeout)
 
     # ========================================
