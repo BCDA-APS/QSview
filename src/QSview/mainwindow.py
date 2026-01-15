@@ -6,6 +6,8 @@ Defines MainWindow class.
     ~MainWindow
 """
 
+import csv
+
 from PyQt5 import QtWidgets
 
 from . import APP_TITLE, utils
@@ -52,6 +54,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.actionClear.triggered.connect(self.doClear)
         self.actionAbout.triggered.connect(self.doAboutDialog)
         self.actionExit.triggered.connect(self.doClose)
+        self.actionSaveHistory.triggered.connect(self.doSaveHistory)
+
+        # History sorting order
+        self.actionSortNewestFirst.triggered.connect(self.doHistorySortToggle)
+        self.actionSortNewestFirst.setChecked(settings.getHistorySortNewestFirst())
 
         # Create widgets with connection
         self._setup_widget(StatusWidget, "groupBox_status", "status_widget")
@@ -94,6 +101,10 @@ class MainWindow(QtWidgets.QMainWindow):
         # Store widget reference
         setattr(self, widget_name, widget)
 
+    # ========================================
+    # Status Bar Messages
+    # ========================================
+
     @property
     def message(self):
         """Returns the current message in the mainwindow status bar.
@@ -105,8 +116,12 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def setMessage(self, text, timeout=0):
         """Write new message to the main window status bar and terminal output."""
-        print(text)
+        # print(text)
         self.statusbar.showMessage(str(text), msecs=timeout)
+
+    # ========================================
+    # Menu Control
+    # ========================================
 
     def doAboutDialog(self, *args, **kw):
         """
@@ -165,6 +180,105 @@ class MainWindow(QtWidgets.QMainWindow):
         self.model.disconnectFromServer()
         self.doClose()
         event.accept()  # let the window close
+
+    def doHistorySortToggle(self):
+        """Toggle history sort direction."""
+
+        # Toggle the settings
+        current = settings.getHistorySortNewestFirst()
+        settings.setHistorySortNewestFirst(not current)
+        self.actionSortNewestFirst.setChecked(not current)
+
+        # Refresh the history display widget if it exist
+        if hasattr(self, "history_widget"):
+            history_data = self.model.getHistory() if self.model else []
+            self.history_widget._on_history_changed(history_data)
+
+    # ========================================
+    # Save History
+    # ========================================
+
+    def doSaveHistory(self):
+        """Save history to file"""
+        history_data = self.model.getHistory()
+        history_data = self.history_widget._apply_sort_setting(history_data)
+        if not history_data:
+            self.setMessage("No history to save")
+            return
+        rows = []
+        for history_item in history_data:
+            row_data = self.extract_row_data(history_item)
+            rows.append(row_data)
+        sorting = "newest" if settings.getHistorySortNewestFirst() else "oldest"
+        self.writeHistoryFile(rows, sorting)
+
+    def writeHistoryFile(self, rows, sorting):
+        """Write CSV file"""
+        filename, _ = QtWidgets.QFileDialog.getSaveFileName(
+            self,
+            "Save History",
+            "",  # start directory (empty = default)
+            "CSV Files (*.csv);;All Files (*)",
+        )
+        if not filename:
+            return
+        try:
+            with open(filename, "w", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f)
+                writer.writerow(
+                    ["Status", "Name", "Detector", "Arguments", "Metadata", "User"]
+                )
+                for row in rows:
+                    writer.writerow(row)
+                writer.writerow([])
+                writer.writerow([f"Sorted {sorting} first."])
+                self.setMessage(f"History saved to {filename}")
+        except Exception as e:
+            self.setMessage(f"Error saving history: {e}")
+
+    def extract_row_data(self, history_item):
+        """Extract data for a single row from history item."""
+        result = history_item.get("result", {})
+
+        # Get bound arguments (converts positional args to kwargs with proper names)
+        if self.model:
+            args, kwargs = self.model.get_bound_item_arguments(history_item)
+        else:
+            args = history_item.get("args", [])
+            kwargs = history_item.get("kwargs", {}).copy()
+
+        # Combine args and kwargs for formatting
+        if args:
+            kwargs["args"] = args
+
+        arguments = self.extract_arguments(kwargs)
+
+        return [
+            result.get("exit_status", "Unknown"),  # Status
+            history_item.get("name", "Unknown"),  # Name
+            arguments.get("det", ""),  # Detector
+            arguments.get("args", ""),  # Arguments
+            arguments.get("md", ""),  # Metadata
+            history_item.get("user", "Unknown"),  # User
+        ]
+
+    def extract_arguments(self, kwargs):
+        """Extract det, args and md from kwargs; returns a dictionary"""
+        columns = {}
+        if not kwargs:
+            return {}
+        if "detectors" in kwargs:
+            columns["det"] = kwargs["detectors"]
+        other_kwargs = {k: v for k, v in kwargs.items() if k not in ["detectors", "md"]}
+        if other_kwargs:
+            columns["args"] = other_kwargs
+        if "md" in kwargs:
+            columns["md"] = kwargs["md"]
+        return columns
+
+    # ========================================
+    # Connection Control
+    # ========================================
 
     def initializeConnection(self):
         """Initialize connection using the most recent server or show open dialog"""

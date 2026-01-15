@@ -51,6 +51,7 @@ class HistoryWidget(QtWidgets.QWidget):
 
         # Connect UI signals
         self.clearHistoryButton.clicked.connect(self._on_clear_clicked)
+        self.saveHistoryButton.clicked.connect(self._on_save_clicked)
         self.copyHistoryButton.clicked.connect(self._on_copy_to_queue_clicked)
         self.viewCheckBox.stateChanged.connect(self._on_toggle_view)
 
@@ -58,6 +59,14 @@ class HistoryWidget(QtWidgets.QWidget):
         self.tableView.selectionModel().selectionChanged.connect(
             self._update_copy_button_state
         )
+
+    def _apply_sort_setting(self, history_data):
+        """Apply sort setting to history data."""
+        from ..user_settings import settings
+
+        if settings.getHistorySortNewestFirst():
+            return history_data[::-1]  # Reverse to show newest first
+        return history_data
 
     def _on_history_changed(self, history_data):
         """Handle history changed signal"""
@@ -69,6 +78,7 @@ class HistoryWidget(QtWidgets.QWidget):
         h = hsb.value()
 
         # Update both models
+        history_data = self._apply_sort_setting(history_data)
         self.current_model.update_data(history_data)
 
         # Schedule resize, delegate and restore scroll position
@@ -96,11 +106,13 @@ class HistoryWidget(QtWidgets.QWidget):
             # Switch to dynamic
             self.current_model = self.dynamic_model
             self.viewCheckBox.setText("Detailed View")
+            history_data = self._apply_sort_setting(history_data)
             self.dynamic_model.update_data(history_data)
         else:
             # Switch to static
             self.current_model = self.static_model
             self.viewCheckBox.setText("Summary View")
+            history_data = self._apply_sort_setting(history_data)
             self.static_model.update_data(history_data)
 
         # Update the table view
@@ -125,6 +137,7 @@ class HistoryWidget(QtWidgets.QWidget):
 
         # Get the history data for selected rows
         history_data = self.model.getHistory()
+        history_data = self._apply_sort_setting(history_data)
         selected_items = []
 
         for row in selected_rows:
@@ -151,6 +164,12 @@ class HistoryWidget(QtWidgets.QWidget):
             if self.model:
                 self.model.clearHistory()
             self.model.messageChanged.emit("Queue cleared")
+
+    def _on_save_clicked(self):
+        """Save history to CSV file"""
+        main_window = self.window()
+        if main_window:
+            main_window.doSaveHistory()
 
     def _resize_table(self):
         """Resize table columns based on current model view type."""
@@ -205,6 +224,7 @@ class HistoryWidget(QtWidgets.QWidget):
                     # Re-render to get correct column headers
                     history_data = self.model.getHistory() if self.model else []
                     if history_data:
+                        history_data = self._apply_sort_setting(history_data)
                         self.dynamic_model.update_data(history_data)
                         QTimer.singleShot(0, self._resize_table)
                         self._plans_loaded_rendered = True
